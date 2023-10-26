@@ -21,15 +21,15 @@ def figure_accuracy_homophilic(
     filename
         Saves figure in 'filename' or shows figure if 'filename' is not given
     number_of_nodes
-        Number of nodes
+        Number of agents
     degree
-        Degree of the network
+        Degree of the influence_network
     number_of_elites: int
         Number of elites
     number_of_communities: int
         Number of communities used for each data point
     number_of_voting_simulations: int
-        Number of steps used to estimate collective accuracy in each network
+        Number of steps used to estimate collective accuracy in each influence_network
 
     Returns
     ----------
@@ -47,9 +47,9 @@ def figure_accuracy_homophilic(
             # Collect data about the accuracy in generated communities
             for community_number in range(number_of_communities):
                 community = Community(
-                    number_of_nodes=number_of_nodes,
+                    number_of_agents=number_of_nodes,
                     number_of_elites=number_of_elites,
-                    degree=degree,
+                    influence_degree=degree,
                     elite_competence=c,
                     mass_competence=c,
                     probability_homophilic_attachment=h,
