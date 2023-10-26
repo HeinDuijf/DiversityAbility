@@ -2,10 +2,10 @@ import random as rd
 
 import matplotlib.pyplot as plt
 import networkx as nx
+from community import Community
 from pyvis.network import Network
 
-from community import Community
-from config import vote_for_elites, vote_for_mass
+from config import vote_for_negative, vote_for_positive
 
 elite_color = "#FFC107"
 mass_color = "#9C27B0"
@@ -13,26 +13,30 @@ mass_color = "#9C27B0"
 
 def set_node_attributes(com: Community, color_type: str = "type"):
     def translate_to_color(symbol):
-        if symbol == vote_for_elites or symbol == "elite":
+        if symbol == vote_for_negative or symbol == "elite":
             return elite_color
         else:
             return mass_color
 
-    for node in com.nodes:
-        com.network.nodes[node]["label"] = str(node)
-        com.network.nodes[node]["size"] = com.network.in_degree(node) + 1
-        com.network.nodes[node]["level"] = com.network.in_degree(node)
+    for node in com.agents:
+        com.influence_network.agents[node]["label"] = str(node)
+        com.influence_network.agents[node]["size"] = (
+            com.influence_network.in_degree(node) + 1
+        )
+        com.influence_network.agents[node]["level"] = com.influence_network.in_degree(
+            node
+        )
         if color_type == "type":
-            com.network.nodes[node]["color"] = translate_to_color(
-                com.network.nodes[node]["type"]
+            com.influence_network.agents[node]["color"] = translate_to_color(
+                com.influence_network.agents[node]["type"]
             )
         elif color_type == "opinion":
-            com.network.nodes[node]["color"] = translate_to_color(
-                com.network.nodes[node]["opinion"]
+            com.influence_network.agents[node]["color"] = translate_to_color(
+                com.influence_network.agents[node]["opinion"]
             )
         elif color_type == "vote":
-            com.network.nodes[node]["color"] = translate_to_color(
-                com.network.nodes[node]["vote"]
+            com.influence_network.agents[node]["color"] = translate_to_color(
+                com.influence_network.agents[node]["vote"]
             )
 
 
@@ -47,10 +51,10 @@ def visualize(com: Community, color_type="type"):
         cdn_resources="remote",
     )
     nt.set_edge_smooth("curvedCCW")
-    for node in com.nodes_elite:
-        nt.add_node(node, x=-1000, **com.network.nodes[node])
-    for node in com.nodes_mass:
-        nt.add_node(node, x=1000, **com.network.nodes[node])
+    for node in com.agents_elite:
+        nt.add_node(node, x=-1000, **com.influence_network.agents[node])
+    for node in com.agents_mass:
+        nt.add_node(node, x=1000, **com.influence_network.agents[node])
 
     hide_edges = False
     if color_type == "vote":
@@ -58,12 +62,12 @@ def visualize(com: Community, color_type="type"):
     elif color_type == "type":
         nt.inherit_edge_colors(False)
 
-    for edge in com.network.edges():
+    for edge in com.influence_network.edges():
         nt.add_edge(
             edge[0],
             edge[1],
             hidden=hide_edges,
-            color=com.network.nodes[edge[1]]["color"],
+            color=com.influence_network.agents[edge[1]]["color"],
         )
     nt.hrepulsion(node_distance=200, damping=0.4)
     nt.prep_notebook()
