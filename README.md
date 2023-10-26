@@ -1,25 +1,26 @@
-# Majority Voting and Collective Accuracy
+# Diversity and Ability
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7767124.svg)](https://doi.org/10.5281/zenodo.7767124)
+This repository is associated with a working paper on the 
+diversity-ability-randomness trade-off in collective problem-solving. The background 
+is [Hong and Page's (2004)](https://doi.org/10.1073/pnas.0403723101) infamous 
+diversity trumps ability (DTA) theorem: "We find that when selecting a problem-solving 
+team from a diverse population of intelligent agents, a team of randomly selected 
+agents outperforms a team comprised of the best-performing agents."  This repository 
+investigates the collective problem-solving capacities of teams in a new formal 
+framework: a probabilistic source-reliability model. We consider three types of 
+teams:
+1. Teams consisting of the best-performing agents;
+2. Teams consisting of a (cognitively) diverse set of agents;
+3. Teams consisting of a randomly selected agents. 
 
-This repository is associated with the paper titled "Is majority voting in the best 
-interest of the majority?" (under review). The paper investigates the 
-collective accuracy of majority voting: which refers to the probability that it succeeds 
-in selecting the alternative that is in the best interest of the majority. 
-I use an agent-based model to explore the impact of imperfect competence and social 
-influence on majority voting. The agents are placed on influence networks that are 
-generated in a natural way, without the assumption that powerful minorities manipulate 
-the network structure. Surprisingly, in these circumstances, there is a considerable 
-risk that majority voting fails to track the majority’s interests. Moreover, my
-statistical analysis suggests that the competences of the minority and the majority 
-and the proportional influence of the minority are strong predictors, while, 
-surprisingly, the relative size of the minority is not.
+Preliminary findings suggest that there is no significant performance difference 
+between these three teams. 
 
-This repository contains the code for the agent-based model and simulations, for 
-producing some figures, and for the statistical analysis. To get a feel for the 
-agent-based model, click the picture below:
+[//]: # (This repository contains the code for the agent-based model and simulations, for )
 
-[![A picture of an example of an agent-based model](/www/agent-based-model.png  "An example of an agent-based model")](https://heinduijf.github.io/MajorityVotingCollectiveAccuracy/)
+[//]: # (producing some figures, and for the statistical analysis. To get a feel for the )
+
+[//]: # (agent-based model, click the picture below:)
 
 ## 1. Setup
 To run the project, you first need to install the required packages
@@ -88,27 +89,11 @@ figures. Each script in that folder is associated with one of the figures.
 ### Statistical analysis: `statistics.py`
 The script `statistics.py` runs the statistical analysis that generates several csv 
 files in  the folder `stats`. The folder `stats` contains scripts that generate the 
-csv files. Each script in that folder is associated with one of the csv files.  
-
-## 4. Runtime limitations
-1. Runtime can be an issue for `Simulation.run()`. To run the simulation (with 
-parameters `number_of_communities = 10 ** 5` and
-`number_of_voting_simulations = 10 ** 5`), we used a virtual machine with 16 cores 
-and 64 GB RAM, which took approximately 5 days to finish. 
-
-2. Runtime can also be a minor issue for two scripts in the folder 
-`generate_figures`, which are also included in the script `figures.py`. We ran these 
-scripts on a basic laptop (2 cores 8 GB RAM). 
-   1. The script `figure_accuracy_homophily.py`) takes approximately 10 minutes 
-   (with parameters `number_of_communities=200` and `number_of_voting_simulations=200`). 
-   2. The script `figure_distribution_in_degree.py` takes approximately 20 minutes to 
-      finish (for 10**5 communities).
+csv files. Each script in that folder is associated with one of the csv files.
 
 ## 5. Licence and citation
-This repository accompanies an academic paper (under review). In the meantime, 
+This repository accompanies an academic paper (in progress). In the meantime, 
 please cite as follows:
-
-Cite the code: 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7767124.svg)](https://doi.org/10.5281/zenodo.7767124)
+- TBD
 
 Released under the [MIT licence](LICENCE.md).
