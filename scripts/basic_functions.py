@@ -16,6 +16,12 @@ def majority_winner(values: list):
 
 
 def calculate_accuracy_and_precision(list_of_items, alpha: float = 0.05):
+    """ Basic function to calculate the accuracy and precision of a list of items.
+    :param list_of_items
+    :param alpha
+    :returns dict
+        keys "accuracy" and "precision"
+    """
     number_of_items = len(list_of_items)
     number_of_success = len(
         [outcome for outcome in list_of_items if outcome == cfg.vote_for_positive]
@@ -29,6 +35,15 @@ def calculate_accuracy_and_precision(list_of_items, alpha: float = 0.05):
         "precision": max(confidence_interval) - min(confidence_interval),
     }
     return result
+
+
+def calculate_diversity(list1, list2):
+    novel_items1 = [item for item in list1 if item not in list2]
+    novelty1 = len(novel_items1) / len(list1)
+    novel_items2 = [item for item in list2 if item not in list1]
+    novelty2 = len(novel_items2) / len(list2)
+    diversity = novelty1 + novelty2 / 2
+    return diversity
 
 
 def convert_math_to_text(string: str):
