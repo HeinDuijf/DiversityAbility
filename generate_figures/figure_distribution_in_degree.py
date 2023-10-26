@@ -12,7 +12,7 @@ def figure_distribution_in_degree(filename: str = None, collect: bool = True):
     """Generates a plot of the in-degree distribution to verify that the generated
     communities are scale-free.
 
-    The conclusion is that preferential attachment communities with number_of_nodes 100,
+    The conclusion is that preferential attachment communities with number_of_agents 100,
     degree 6 and probability_preferential_attachment 0.4 are scale-free, but this may
     not be the case for other parameter settings.
 
@@ -41,8 +41,8 @@ def figure_distribution_in_degree(filename: str = None, collect: bool = True):
             community = read_community_from_file(
                 f"{root_dir}/data/communities/communities/{community_number}"
             )
-            for node in community.nodes:
-                node_in_degree = community.network.in_degree(node)
+            for node in community.agents:
+                node_in_degree = community.influence_network.in_degree(node)
                 old_frequency = data.at[node_in_degree, "frequency"]
                 data.at[node_in_degree, "frequency"] = old_frequency + 1
             print(
