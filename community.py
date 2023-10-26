@@ -1,11 +1,11 @@
-import math
+import copy
 import random as rd
 
 import networkx as nx
 import numpy as np
 
 from scripts import config as cfg
-from scripts.basic_functions import majority_winner
+from scripts.basic_functions import calculate_accuracy_and_precision, majority_winner
 
 
 class Community:
@@ -74,12 +74,86 @@ class Community:
         self.initialize_source_attributes()
         return self.source_network
 
+    def set_source_network(self, source_network):
+        agents = self.agents
+        new_agents = [agent for agent in agents if agent not in source_network.nodes()]
+        source_network.add_nodes_from(new_agents)
+        self.source_network = source_network
+        self.initialize_attributes()
+
+    def add_agents_from(self, new_agents: list):
+        # Todo: check if these methods are necessary, remove otherwise
+        if type(new_agents) != list:
+            new_agents = [new_agents]
+        self.agents += new_agents
+        self.number_of_agents = len(self.agents)
+        self.influence_network.add_nodes_from(new_agents)
+        self.source_network.add_nodes_from(new_agents)
+        for agent in new_agents:
+            self.influence_network.nodes[agent][cfg.agent_competence] = 0
+
+    def remove_agents_from(self, remove_agents: list):
+        if type(remove_agents) != list:
+            remove_agents = [remove_agents]
+        self.agents = [agent for agent in self.agents if agent not in remove_agents]
+        self.number_of_agents = len(self.agents)
+        self.influence_network.remove_nodes_from(remove_agents)
+        self.source_network.remove_nodes_from(remove_agents)
+
+    def add_sources_from(
+        self, new_sources: list, new_source_reliabilities: list = None
+    ):
+        if type(new_sources) != list:
+            new_sources = [new_sources]
+        if new_source_reliabilities is None:
+            new_source_reliabilities = [None for _ in new_sources]
+        self.sources += new_sources
+        self.number_of_sources = self.number_of_sources + len(new_sources)
+        self.source_network.add_nodes_from(new_sources)
+        for k, new_source in enumerate(new_sources):
+            reliability = new_source_reliabilities[k]
+            self.initialize_source_reliability(new_source, reliability)
+
+    def remove_sources_from(self, sources_remove):
+        if type(sources_remove) != list:
+            sources_remove = [sources_remove]
+        agents_affected = [
+            agent
+            for source in sources_remove
+            for agent in self.source_network.in_edges[source]
+        ]
+        self.sources = [
+            source for source in self.sources if source not in sources_remove
+        ]
+        self.number_of_sources = len(self.sources)
+        self.source_network.remove_nodes_from(sources_remove)
+        for agent in agents_affected:
+            self.initialize_competence(agent)
+            for target in self.influence_network[agent]:
+                self.initialize_diversity((agent, target))
+
+    def add_source_edges_from(self, new_source_edges: list):
+        new_sources = [source for agent, source in new_source_edges]
+        new_agents = [agent for agent, source in new_source_edges]
+        self.add_sources_from(new_sources)
+        self.add_agents_from(new_agents)
+        self.source_network.add_edges_from(new_source_edges)
+        for agent in new_agents:
+            self.initialize_competence(agent)
+        for edge in new_source_edges:
+            self.initialize_diversity(edge)
+
     def initialize_source_attributes(self):
-        # Todo: include other ways to set source reliability
         for source in self.sources:
-            self.source_network.nodes[source][cfg.source_reliability] = rd.uniform(
+            self.initialize_source_reliability(source)
+
+    def initialize_source_reliability(self, source: str, reliability: float = None):
+        # Todo: include other ways to set source reliability
+        if reliability is None:
+            reliability = rd.uniform(
                 self.sources_reliability_range[0], self.sources_reliability_range[1]
             )
+        self.source_network.nodes[source][cfg.source_reliability] = reliability
 
     def create_influence_network(self):
         """Returns a directed influence_network according to multi-type preferential
@@ -198,16 +272,22 @@ class Community:
 
     def initialize_attributes(self):
         for agent in self.agents:
-            self.influence_network.nodes[agent][
-                cfg.agent_competence
-            ] = self.calculate_competence(agent)
+            self.initialize_competence(agent)
         for edge in self.influence_network.edges:
-            self.influence_network.edges[edge][
-                cfg.edge_diversity
-            ] = self.calculate_diversity(edge)
-            # self.influence_network.edges[edge][
-            #     cfg.edge_correlation
-            # ] = self.calculate_correlation(edge)
+            self.initialize_diversity(edge)
+        # self.influence_network.edges[edge][
+        #     cfg.edge_correlation
+        # ] = self.calculate_correlation(edge)
+
+    def initialize_competence(self, agent):
+        self.influence_network.nodes[agent][
+            cfg.agent_competence
+        ] = self.calculate_competence(agent=agent)
+
+    def initialize_diversity(self, edge):
+        self.influence_network.edges[edge][
+            cfg.edge_diversity
+        ] = self.calculate_diversity(edge)
 
     def calculate_diversity(self, edge):
         agent1 = edge[0]
@@ -248,79 +328,7 @@ class Community:
                     competence += probability_subset / 2
         return competence
 
-    def calculate_correlation(self, edge):
-        # Todo: fix and test correlation function and use it to set edge attribute
-        #  in the source network.
-        # Todo: measure diversity: Can we use correlation for this?
-        probability_11 = 0
-        probability_00 = 0
-        probability_10 = 0
-        probability_01 = 0
-        agent1 = edge[0]
-        agent2 = edge[1]
-        sources_agent1 = self.source_network[agent1]
-        sources_agent2 = self.source_network[agent2]
-        sources = sorted(set(sources_agent1).union(set(sources_agent2)))
-        number_of_sources = len(sources)
-
-        powerset = (
-            list(bin(number)[2:].zfill(number_of_sources))
-            for number in range(2 ** number_of_sources)
-        )
-        for subset in powerset:
-            probabilities_list = [
-                self.source_network.nodes[sources[k]][cfg.source_reliability]
-                for k in range(number_of_sources)
-                if subset[k] == "1"
-            ] + [
-                1 - self.source_network.nodes[sources[k]][cfg.source_reliability]
-                for k in range(number_of_sources)
-                if subset[k] == "0"
-            ]
-            probability_subset = np.prod(probabilities_list)
-            agent1_opinion = majority_winner(
-                [
-                    subset[k]
-                    for k in range(number_of_sources)
-                    if sources[k] in sources_agent1
-                ]
-            )
-            agent2_opinion = majority_winner(
-                [
-                    subset[k]
-                    for k in range(number_of_sources)
-                    if sources[k] in sources_agent2
-                ]
-            )
-            if agent1_opinion == "1" and agent2_opinion == "1":
-                probability_11 += probability_subset
-            elif agent1_opinion == "1" and agent2_opinion == "0":
-                probability_10 += probability_subset
-            elif agent1_opinion == "0" and agent2_opinion == "1":
-                probability_01 += probability_subset
-            elif agent1_opinion == "0" and agent2_opinion == "0":
-                probability_00 += probability_subset
-
-        accuracy_agent1 = probability_11 + probability_10
-        accuracy_agent2 = probability_11 + probability_01
-        assert accuracy_agent1 < 1
-        assert probability_10 != 0
-        assert accuracy_agent2 < 1
-        assert probability_11 != 0
-
-        correlation = (
-            probability_11 * probability_00 - probability_10 * probability_01
-        ) / (
-            math.sqrt(
-                accuracy_agent1
-                * (1 - accuracy_agent1)
-                * accuracy_agent2
-                * (1 - accuracy_agent2)
-            )
-        )
-        return correlation
-
-    def total_influence_elites(self):  # Todo: remove?
+    def total_influence_elites(self):
         edges_to_elites = [
             (source, target)
             for (source, target) in self.influence_network.edges()
@@ -328,17 +336,17 @@ class Community:
         ]
         return len(edges_to_elites)
 
-    def total_influence_mass(self):  # Todo: Remove?
+    def total_influence_mass(self):
         return len(self.influence_network.edges()) - self.total_influence_elites()
 
-    def best_group(self, group_size):
+    def optimal_group(self, group_size):
         agent_tuples = [
             [agent, self.influence_network.nodes[agent][cfg.agent_competence]]
             for agent in self.agents
         ]
         agent_tuples.sort(key=lambda item: item[1], reverse=True)
-        best_group = [agent for [agent, competence] in agent_tuples[:group_size]]
-        return best_group
+        optimal_group = [agent for [agent, competence] in agent_tuples[:group_size]]
+        return optimal_group
 
     def random_group(self, group_size):
         return rd.sample(self.agents, group_size)
@@ -367,6 +375,26 @@ class Community:
                 )
                 agents_diversity[agent] = len(agents_sources[agent])
         return diverse_group
+
+    def problem_difficulty(self):
+        return self.calculate_competence(sources=self.sources)
+
+    def estimated_community_accuracy(
+        self, number_of_voting_simulations: int, alpha: float = 0.05
+    ):
+        """ Method for estimating the collective accuracy of the community.
+        :param number_of_voting_simulations: int
+            Number of simulations to estimate the collective accuracy
+        :param alpha: float
+            p-value for confidence interval.
+        :returns result: dict
+            result["accuracy"]: estimated collective accuracy,
+            result["precision"]: the confidence interval associated with p-value
+            alpha
+        """
+        vote_outcomes = [self.vote() for _ in range(number_of_voting_simulations)]
+        result = calculate_accuracy_and_precision(vote_outcomes, alpha=alpha)
+        return result
 
     def vote(self):
         self.update_votes()
