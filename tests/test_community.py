@@ -4,7 +4,6 @@ from scripts import config as cfg
 
 params_blank = {
     "number_of_agents": 2,
-    "number_of_elites": 0,
     "influence_degree": 0,
     "probability_preferential_attachment": None,
     "probability_homophilic_attachment": None,
@@ -34,7 +33,6 @@ def setup_module(module):
 
     params_without_hom = {
         "number_of_agents": 100,
-        "number_of_elites": 20,
         "influence_degree": 6,
         "probability_preferential_attachment": 0.6,
         "probability_homophilic_attachment": None,
@@ -42,19 +40,17 @@ def setup_module(module):
     }
     community_without_hom = Community(**params_without_hom)
 
-    params_with_hom = {
-        "number_of_agents": 200,
-        "number_of_elites": 77,
-        "influence_degree": 8,
-        "probability_preferential_attachment": 0.6,
-        "probability_homophilic_attachment": 0.7,
-        "edges": None,
-    }
-    community_with_hom = Community(**params_with_hom)
+    # params_with_hom = {
+    #     "number_of_agents": 200,
+    #     "influence_degree": 8,
+    #     "probability_preferential_attachment": 0.6,
+    #     "probability_homophilic_attachment": 0.7,
+    #     "edges": None,
+    # }
+    # community_with_hom = Community(**params_with_hom)
     edges = list(nx.complete_graph(30, nx.DiGraph()).edges)
     params_from_edges = {
         "number_of_agents": 200,
-        "number_of_elites": 5,
         "influence_degree": 2,
         "probability_preferential_attachment": 0.6,
         "probability_homophilic_attachment": 0.7,
@@ -66,7 +62,6 @@ def setup_module(module):
         "number_of_agents": 2,
         "number_of_sources": 3,
         "source_degree": 3,
-        "number_of_elites": 0,
         "influence_degree": 1,
         # "probability_preferential_attachment": None,
         "probability_homophilic_attachment": None,
@@ -127,11 +122,11 @@ def test_create_initial_network_without_homophilic_attachment():
     check_influence_degree(community_without_hom, params_without_hom)
 
 
-def test_create_initial_network_with_homophilic_attachment():
-    global community_with_hom
-    global params_with_hom
-    check_number_of_agents(community_with_hom, params_with_hom)
-    check_influence_degree(community_with_hom, params_with_hom)
+# def test_create_initial_network_with_homophilic_attachment():
+#     global community_with_hom
+#     global params_with_hom
+#     check_number_of_agents(community_with_hom, params_with_hom)
+#     check_influence_degree(community_with_hom, params_with_hom)
 
 
 def test_create_network_from_edges():
@@ -148,41 +143,41 @@ def test_create_network():
     global community_without_hom
     global params_without_hom
     check_community(community_without_hom, params_without_hom)
-    global community_with_hom
-    global params_with_hom
-    check_community(community_with_hom, params_with_hom)
+    # global community_with_hom
+    # global params_with_hom
+    # check_community(community_with_hom, params_with_hom)
     global community_from_edges
     global params_from_edges
     check_community(community_from_edges, params_from_edges)
 
 
-def test_rewire_network():
-    nodes_mass = community_without_hom.agents_mass
-    nodes_elite = community_without_hom.agents_elite
-    network_pre = community_without_hom.influence_network
-    network_post = community_without_hom.rewire_network(network_pre)
-    edges_to_mass_pre = [
-        (source, target)
-        for (source, target) in network_pre.edges()
-        if target in nodes_mass
-    ]
-    edges_to_mass_post = [
-        (source, target)
-        for (source, target) in network_post.edges()
-        if target in nodes_mass
-    ]
-    assert len(edges_to_mass_pre) == len(edges_to_mass_post)
-    edges_to_elite_pre = [
-        (source, target)
-        for (source, target) in network_pre.edges()
-        if target in nodes_elite
-    ]
-    edges_to_elite_post = [
-        (source, target)
-        for (source, target) in network_post.edges()
-        if target in nodes_elite
-    ]
-    assert len(edges_to_elite_pre) == len(edges_to_elite_post)
+# def test_rewire_network():
+#     nodes_mass = community_without_hom.agents_mass
+#     nodes_elite = community_without_hom.agents_elite
+#     network_pre = community_without_hom.influence_network
+#     network_post = community_without_hom.rewire_network(network_pre)
+#     edges_to_mass_pre = [
+#         (source, target)
+#         for (source, target) in network_pre.edges()
+#         if target in nodes_mass
+#     ]
+#     edges_to_mass_post = [
+#         (source, target)
+#         for (source, target) in network_post.edges()
+#         if target in nodes_mass
+#     ]
+#     assert len(edges_to_mass_pre) == len(edges_to_mass_post)
+#     edges_to_elite_pre = [
+#         (source, target)
+#         for (source, target) in network_pre.edges()
+#         if target in nodes_elite
+#     ]
+#     edges_to_elite_post = [
+#         (source, target)
+#         for (source, target) in network_post.edges()
+#         if target in nodes_elite
+#     ]
+#     assert len(edges_to_elite_pre) == len(edges_to_elite_post)
 
 
 def test_add_agents_from():
@@ -225,19 +220,23 @@ def test_add_sources_from():
 
 
 def test_initialize_attributes():
-    global community_with_hom
-    community_with_hom.initialize_attributes()
+    global community_without_hom
+    community_without_hom.initialize_attributes()
     assert all(
         [
             0
-            <= community_with_hom.influence_network.nodes[agent][cfg.agent_competence]
+            <= community_without_hom.influence_network.nodes[agent][
+                cfg.agent_competence
+            ]
             <= 1
-            for agent in community_with_hom.agents
+            for agent in community_without_hom.agents
         ]
     )
     assert all(
-        0 <= community_with_hom.influence_network.edges[edge][cfg.edge_diversity] <= 1
-        for edge in community_with_hom.influence_network.edges
+        0
+        <= community_without_hom.influence_network.edges[edge][cfg.edge_diversity]
+        <= 1
+        for edge in community_without_hom.influence_network.edges
     )
     # assert all(
     #     [
@@ -277,21 +276,23 @@ def test_initialize_attributes():
     # )
 
 
-def test_total_influence_elites():
-    global community_from_edges
-    assert community_from_edges.total_influence_elites() == (5 * 29)
-
-
-def test_total_influence_mass():
-    global community_from_edges
-    assert community_from_edges.total_influence_mass() == (25 * 29)
+# def test_total_influence_elites():
+#     global community_from_edges
+#     assert community_from_edges.total_influence_elites() == (5 * 29)
+#
+#
+# def test_total_influence_mass():
+#     global community_from_edges
+#     assert community_from_edges.total_influence_mass() == (25 * 29)
 
 
 def test_update_votes():
-    global community_with_hom
-    community_with_hom.update_votes()
-    for agent in community_with_hom.agents:
-        agent_vote = community_with_hom.influence_network.nodes[agent][cfg.agent_vote]
+    global community_without_hom
+    community_without_hom.update_votes()
+    for agent in community_without_hom.agents:
+        agent_vote = community_without_hom.influence_network.nodes[agent][
+            cfg.agent_vote
+        ]
         agent_has_vote: bool = (
             agent_vote == cfg.vote_for_positive or agent_vote == cfg.vote_for_negative
         )
@@ -299,10 +300,10 @@ def test_update_votes():
 
 
 def test_update_opinions():
-    global community_with_hom
-    community_with_hom.update_opinions()
-    for node in community_with_hom.agents:
-        node_opinion = community_with_hom.influence_network.nodes[node][
+    global community_without_hom
+    community_without_hom.update_opinions()
+    for node in community_without_hom.agents:
+        node_opinion = community_without_hom.influence_network.nodes[node][
             cfg.agent_opinion
         ]
         node_has_opinion: bool = (

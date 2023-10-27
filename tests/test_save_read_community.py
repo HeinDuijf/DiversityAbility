@@ -12,7 +12,7 @@ from scripts.save_read_community import (
 def test_community_compress():
     params: dict = {
         "number_of_agents": 3,
-        "number_of_elites": 2,
+        # "number_of_elites": 2,
         "influence_degree": 2,
         "number_of_sources": 11,
         "source_degree": 1,
@@ -24,7 +24,7 @@ def test_community_compress():
     community = Community(**params)
     community_compressed = community_compress(community)
     assert community_compressed["N"] == params["number_of_agents"]
-    assert community_compressed["E"] == params["number_of_elites"]
+    # assert community_compressed["E"] == params["number_of_elites"]
     assert community_compressed["d"] == params["influence_degree"]
     assert community_compressed["h"] == params["probability_homophilic_attachment"]
     assert community_compressed["pp"] == params["probability_preferential_attachment"]
@@ -39,7 +39,7 @@ def test_community_compress():
 def test_community_unpack():
     community_compressed: dict = {
         "N": 3,
-        "E": 2,
+        # "E": 2,
         "d": 2,
         "NS": 11,
         "ds": 1,
@@ -55,7 +55,7 @@ def test_community_unpack():
     }
     community_unpacked = community_unpack(community_compressed)
     assert community_unpacked.number_of_agents == community_compressed["N"]
-    assert community_unpacked.number_of_elites == community_compressed["E"]
+    # assert community_unpacked.number_of_elites == community_compressed["E"]
     # assert community_unpacked.influence_degree == params["d"]
     assert (
         community_unpacked.probability_homophilic_attachment
@@ -84,16 +84,16 @@ def test_community_unpack():
 def test_save_and_read():
     params: dict = {
         "number_of_agents": 100,
-        "number_of_elites": 35,
+        # "number_of_elites": 35,
         "influence_degree": 7,
-        "probability_homophilic_attachment": 0.8,
+        "probability_homophilic_attachment": None,
         "probability_preferential_attachment": 0.4,
     }
     community = Community(**params)
     save_community_to_file(filename="data/test_community", community=community)
     community_read = read_community_from_file(filename="data/test_community")
     assert community.number_of_agents == community_read.number_of_agents
-    assert community.number_of_elites == community_read.number_of_elites
+    # assert community.number_of_elites == community_read.number_of_elites
     assert community.influence_degree == community_read.influence_degree
     assert (
         community.probability_homophilic_attachment

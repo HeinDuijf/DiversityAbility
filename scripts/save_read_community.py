@@ -19,7 +19,7 @@ def community_compress(community: Community):
             source_edges_dict[f"S{agent}"] = f"{source_edges_dict[agent]},{source}"
     community_dict = {
         "N": community.number_of_agents,
-        "E": community.number_of_elites,
+        # "E": community.number_of_elites,
         "d": community.influence_degree,
         "NS": community.number_of_sources,
         "ds": community.source_degree,
@@ -54,7 +54,7 @@ def community_unpack(community_compressed: dict):
     ]
     community_dict = {
         "number_of_agents": community_compressed["N"],
-        "number_of_elites": community_compressed["E"],
+        # "number_of_elites": community_compressed["E"],
         "influence_degree": community_compressed["d"],
         "number_of_sources": community_compressed["NS"],
         "source_degree": community_compressed["ds"],

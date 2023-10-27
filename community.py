@@ -18,7 +18,6 @@ class Community:
         # For example "norm" and ("norm", (mean, std)) and "uni" and ("uni", (min, max))
         source_degree: int = 5,
         influence_degree: int = 6,
-        number_of_elites: int = 40,
         probability_preferential_attachment: float = 0.6,
         probability_homophilic_attachment: float = None,
         edges: list = None,
@@ -29,10 +28,6 @@ class Community:
         self.sources_reliability_range = sources_reliability_range
         self.source_degree: int = source_degree
         self.influence_degree: int = influence_degree
-        self.number_of_elites: int = number_of_elites
-        self.number_of_mass: int = number_of_agents - number_of_elites
-        # self.elite_competence: float = elite_competence
-        # self.mass_competence: float = mass_competence
         self.probability_preferential_attachment: float = (
             probability_preferential_attachment
         )
@@ -44,8 +39,6 @@ class Community:
 
         self.agents: list = list(range(number_of_agents))
         self.sources: list = [f"s{k}" for k in range(self.number_of_sources)]
-        self.agents_elite: list = self.agents[: self.number_of_elites]
-        self.agents_mass: list = self.agents[-self.number_of_mass :]
 
         # The central methods
         self.source_network = self.create_source_network()
@@ -203,28 +196,28 @@ class Community:
         initial_network.add_nodes_from(self.agents)
 
         # Homophilic attachment
-        for node in self.agents:
+        for agent in self.agents:
             random_list = np.random.random_sample(self.influence_degree)
             number_targets_same_type = len(
                 [x for x in random_list if x < self.probability_homophilic_attachment]
             )
             number_targets_diff_type = self.influence_degree - number_targets_same_type
-            if node in self.agents_elite:
+            if agent in self.agents_elite:
                 nodes_same_type = self.agents_elite.copy()
-                nodes_same_type.remove(node)
+                nodes_same_type.remove(agent)
                 nodes_diff_type = self.agents_mass
             else:
                 nodes_same_type = self.agents_mass.copy()
-                nodes_same_type.remove(node)
+                nodes_same_type.remove(agent)
                 nodes_diff_type = self.agents_elite
             targets_same_type = rd.sample(nodes_same_type, number_targets_same_type)
             targets_diff_type = rd.sample(nodes_diff_type, number_targets_diff_type)
             targets = targets_same_type + targets_diff_type
-            edges_from_source = [(node, target) for target in targets]
+            edges_from_source = [(agent, target) for target in targets]
             initial_network.add_edges_from(edges_from_source)
         return initial_network
 
-    def rewire_network(self, initial_network):
+    def rewire_network(self, initial_network, multi_type=False):
         # Initialize influence_network and agents
         network = nx.DiGraph()
         network.add_nodes_from(self.agents)
@@ -234,18 +227,24 @@ class Community:
         rd.shuffle(edges_to_do)
         for (source, target) in edges_to_do:
             # Define potential targets
-            if target in self.agents_elite:
-                nodes_of_target_type = self.agents_elite
+            if multi_type:
+                if target in self.agents_elite:
+                    agents_of_target_type = self.agents_elite
+                else:
+                    agents_of_target_type = self.agents_mass
+                potential_targets = [
+                    agent
+                    for agent in agents_of_target_type
+                    if agent not in network[source] and agent != source
+                ]
             else:
-                nodes_of_target_type = self.agents_mass
-            potential_targets = [
-                node
-                for node in nodes_of_target_type
-                if node not in network[source] and node != source
-            ]
-
+                potential_targets = [
+                    agent
+                    for agent in self.agents
+                    if agent not in network[source] and agent != source
+                ]
+            # Preferential attachment
             if rd.random() < self.probability_preferential_attachment:
-                # Preferential attachment
                 list_of_tuples = list(
                     network.in_degree(potential_targets)
                 )  # list of tuples of the form (node, in_degree of node)
