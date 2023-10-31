@@ -17,11 +17,15 @@ class Community:
         # Todo: set probability distribution of sources: string or (string, (params))
         # For example "norm" and ("norm", (mean, std)) and "uni" and ("uni", (min, max))
         source_degree: int = 5,
+        # Todo: set influence types (string, *params)
+        influence=("all"),  # ("rd", 6), ("pref", 0.6), ("hom", 0.7), ("prefhom",
+        # 0.6, 0.7
         influence_degree: int = 6,
         probability_preferential_attachment: float = 0.6,
         probability_homophilic_attachment: float = None,
         edges: list = None,
         source_edges: list = None,
+        create: bool = True,
     ):
         self.number_of_agents: int = number_of_agents
         self.number_of_sources: int = number_of_sources
@@ -40,9 +44,13 @@ class Community:
         self.agents: list = list(range(number_of_agents))
         self.sources: list = [f"s{k}" for k in range(self.number_of_sources)]
 
+        self.source_network = nx.DiGraph()
+        self.influence_network = nx.DiGraph()
+
         # The central methods
-        self.source_network = self.create_source_network()
-        self.influence_network = self.create_influence_network()
+        if create:
+            self.create_source_network()
+            self.create_influence_network()
 
     def create_source_network(self):
         """Returns a random directed source_network with two types of nodes: agents
@@ -56,7 +64,7 @@ class Community:
             source_network.add_edges_from(self.source_edges)
             self.source_network = source_network
             self.initialize_source_attributes()
-            return self.source_network
+            return
 
         # Add random edges
         for agent in self.agents:
@@ -65,75 +73,16 @@ class Community:
             source_network.add_edges_from(edges_from_agent)
         self.source_network = source_network
         self.initialize_source_attributes()
-        return self.source_network
 
     def set_source_network(self, source_network):
         agents = self.agents
         new_agents = [agent for agent in agents if agent not in source_network.nodes()]
-        source_network.add_nodes_from(new_agents)
-        self.source_network = source_network
-        self.initialize_attributes()
-
-    def add_agents_from(self, new_agents: list):
-        # Todo: check if these methods are necessary, remove otherwise
-        if type(new_agents) != list:
-            new_agents = [new_agents]
-        self.agents += new_agents
-        self.number_of_agents = len(self.agents)
-        self.influence_network.add_nodes_from(new_agents)
-        self.source_network.add_nodes_from(new_agents)
-        for agent in new_agents:
-            self.influence_network.nodes[agent][cfg.agent_competence] = 0
-
-    def remove_agents_from(self, remove_agents: list):
-        if type(remove_agents) != list:
-            remove_agents = [remove_agents]
-        self.agents = [agent for agent in self.agents if agent not in remove_agents]
-        self.number_of_agents = len(self.agents)
-        self.influence_network.remove_nodes_from(remove_agents)
-        self.source_network.remove_nodes_from(remove_agents)
-
-    def add_sources_from(
-        self, new_sources: list, new_source_reliabilities: list = None
-    ):
-        if type(new_sources) != list:
-            new_sources = [new_sources]
-        if new_source_reliabilities is None:
-            new_source_reliabilities = [None for _ in new_sources]
-        self.sources += new_sources
-        self.number_of_sources = self.number_of_sources + len(new_sources)
-        self.source_network.add_nodes_from(new_sources)
-        for k, new_source in enumerate(new_sources):
-            reliability = new_source_reliabilities[k]
-            self.initialize_source_reliability(new_source, reliability)
-
-    def remove_sources_from(self, sources_remove):
-        if type(sources_remove) != list:
-            sources_remove = [sources_remove]
-        agents_affected = [
-            agent
-            for source in sources_remove
-            for agent in self.source_network.in_edges[source]
-        ]
-        self.sources = [
-            source for source in self.sources if source not in sources_remove
-        ]
-        self.number_of_sources = len(self.sources)
-        self.source_network.remove_nodes_from(sources_remove)
-        for agent in agents_affected:
-            self.initialize_competence(agent)
-            for target in self.influence_network[agent]:
-                self.initialize_diversity((agent, target))
-
-    def add_source_edges_from(self, new_source_edges: list):
-        new_sources = [source for agent, source in new_source_edges]
-        new_agents = [agent for agent, source in new_source_edges]
-        self.add_sources_from(new_sources)
+        self.sources = list(
+            [node for node in source_network.nodes() if isinstance(node, str)]
+        )
         self.add_agents_from(new_agents)
-        self.source_network.add_edges_from(new_source_edges)
-        for agent in new_agents:
-            self.initialize_competence(agent)
-        for edge in new_source_edges:
+        self.source_network = source_network
+        for edge in self.influence_network.edges:
             self.initialize_diversity(edge)
 
     def initialize_source_attributes(self):
@@ -153,9 +102,9 @@ class Community:
         attachment by amending the Barabási-Albert preferential attachment procedure,
         unless edges are given."""
         if self.edges is not None:
-            self.influence_network = self.create_network_from_edges()
+            self.create_network_from_edges()
             self.initialize_attributes()
-            return self.influence_network
+            return
 
         # Create initial influence_network.
         if self.probability_homophilic_attachment is None:
@@ -169,13 +118,11 @@ class Community:
         # Preferential rewiring.
         self.influence_network = self.rewire_network(initial_network)
         self.initialize_attributes()
-        return self.influence_network
 
     def create_network_from_edges(self):
-        network = nx.DiGraph()
-        network.add_nodes_from(self.agents)
-        network.add_edges_from(self.edges)
-        return network
+        self.influence_network = nx.DiGraph()
+        self.influence_network.add_nodes_from(self.agents)
+        self.influence_network.add_edges_from(self.edges)
 
     def create_initial_network_without_homophilic_attachment(self):
         # Initialize influence_network and agents
@@ -274,9 +221,6 @@ class Community:
             self.initialize_competence(agent)
         for edge in self.influence_network.edges:
             self.initialize_diversity(edge)
-        # self.influence_network.edges[edge][
-        #     cfg.edge_correlation
-        # ] = self.calculate_correlation(edge)
 
     def initialize_competence(self, agent):
         self.influence_network.nodes[agent][
@@ -326,17 +270,6 @@ class Community:
                 elif subset.count("1") == 0.5:
                     competence += probability_subset / 2
         return competence
-
-    def total_influence_elites(self):
-        edges_to_elites = [
-            (source, target)
-            for (source, target) in self.influence_network.edges()
-            if target in self.agents_elite
-        ]
-        return len(edges_to_elites)
-
-    def total_influence_mass(self):
-        return len(self.influence_network.edges()) - self.total_influence_elites()
 
     def optimal_group(self, group_size):
         agent_tuples = [
@@ -436,3 +369,64 @@ class Community:
             self.influence_network.nodes[agent][cfg.agent_opinion] = majority_winner(
                 source_valences
             )
+
+    def add_agents_from(self, new_agents: list):
+        if not isinstance(new_agents, list):
+            new_agents = [new_agents]
+        self.agents += new_agents
+        self.number_of_agents = len(self.agents)
+        self.influence_network.add_nodes_from(new_agents)
+        self.source_network.add_nodes_from(new_agents)
+        for agent in new_agents:
+            self.influence_network.nodes[agent][cfg.agent_competence] = 0
+
+    def remove_agents_from(self, remove_agents: list):
+        if not isinstance(remove_agents, list):
+            remove_agents = [remove_agents]
+        self.agents = [agent for agent in self.agents if agent not in remove_agents]
+        self.number_of_agents = len(self.agents)
+        self.influence_network.remove_nodes_from(remove_agents)
+        self.source_network.remove_nodes_from(remove_agents)
+
+    def add_sources_from(
+        self, new_sources: list, new_source_reliabilities: list = None
+    ):
+        if not isinstance(new_sources, list):
+            new_sources = [new_sources]
+        if new_source_reliabilities is None:
+            new_source_reliabilities = [None for _ in new_sources]
+        self.sources += new_sources
+        self.number_of_sources = self.number_of_sources + len(new_sources)
+        self.source_network.add_nodes_from(new_sources)
+        for k, new_source in enumerate(new_sources):
+            reliability = new_source_reliabilities[k]
+            self.initialize_source_reliability(new_source, reliability)
+
+    def remove_sources_from(self, sources_remove):
+        if not isinstance(sources_remove, list):
+            sources_remove = [sources_remove]
+        agents_affected = [
+            agent
+            for source in sources_remove
+            for agent in self.source_network.in_edges[source]
+        ]
+        self.sources = [
+            source for source in self.sources if source not in sources_remove
+        ]
+        self.number_of_sources = len(self.sources)
+        self.source_network.remove_nodes_from(sources_remove)
+        for agent in agents_affected:
+            self.initialize_competence(agent)
+            for target in self.influence_network[agent]:
+                self.initialize_diversity((agent, target))
+
+    def add_source_edges_from(self, new_source_edges: list):
+        new_sources = [source for agent, source in new_source_edges]
+        new_agents = [agent for agent, source in new_source_edges]
+        self.add_sources_from(new_sources)
+        self.add_agents_from(new_agents)
+        self.source_network.add_edges_from(new_source_edges)
+        for agent in new_agents:
+            self.initialize_competence(agent)
+        for edge in new_source_edges:
+            self.initialize_diversity(edge)
