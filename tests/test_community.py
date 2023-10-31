@@ -13,15 +13,16 @@ params_blank = {
     "create": False,
 }
 community_blank = Community(**params_blank)
-community_without_hom: Community = community_blank
-community_with_hom: Community = community_blank
-community_from_edges: Community = community_blank
-community_simple_source = community_blank
+community_without_hom: Community = copy.deepcopy(community_blank)
+community_with_hom: Community = copy.deepcopy(community_blank)
+community_from_edges: Community = copy.deepcopy(community_blank)
+community_simple_source = copy.deepcopy(community_blank)
 
-params_without_hom: dict = {}
-params_with_hom: dict = {}
-params_from_edges: dict = {}
-params_simple_source: dict = {}
+params_blank["create"] = True
+params_without_hom: dict = copy.deepcopy(params_blank)
+params_with_hom: dict = copy.deepcopy(params_blank)
+params_from_edges: dict = copy.deepcopy(params_blank)
+params_simple_source: dict = copy.deepcopy(params_blank)
 
 
 def setup_module(module):
@@ -34,13 +35,10 @@ def setup_module(module):
     global params_from_edges
     global params_simple_source
 
-    params_without_hom = {
-        "number_of_agents": 100,
-        "influence_degree": 6,
-        "probability_preferential_attachment": 0.6,
-        "probability_homophilic_attachment": None,
-        "edges": None,
-    }
+    params_without_hom["number_of_agents"] = 100
+    params_without_hom["influence_degree"] = 6
+    params_without_hom["probability_preferential_attachment"] = 0.6
+
     community_without_hom = Community(**params_without_hom)
 
     # params_with_hom = {
@@ -61,15 +59,12 @@ def setup_module(module):
     }
     community_from_edges = Community(**params_from_edges)
 
-    params_simple_source = {
-        "number_of_agents": 2,
-        "number_of_sources": 3,
-        "source_degree": 3,
-        "influence_degree": 1,
-        # "probability_preferential_attachment": None,
-        "probability_homophilic_attachment": None,
-        # "edges": [],
-    }
+    params_simple_source["number_of_agents"] = 3
+    params_simple_source["number_of_sources"] = 3
+    params_simple_source["source_degree"] = 3
+    params_simple_source["influence_degree"] = 1
+    params_simple_source["probability_preferential_attachment"] = 0.8
+
     community_simple_source = Community(**params_simple_source)
 
 
@@ -240,6 +235,24 @@ def test_add_sources_from():
     assert community.number_of_sources == 10 + 2
 
 
+def test_add_influence_edges_from():
+    global community_simple_source
+    global params_simple_source
+    community_new = copy.deepcopy(community_simple_source)
+    params_new = copy.deepcopy(params_simple_source)
+    community_new.add_influence_edges_from(
+        [
+            (agent1, agent2)
+            for agent1 in community_new.agents
+            for agent2 in community_new.agents
+            if (agent1, agent2) not in community_simple_source.influence_network.edges
+            if agent1 != agent2
+        ]
+    )
+    params_new["influence_degree"] = 2
+    check_community(community_new, params_new)
+
+
 def test_initialize_attributes():
     global community_without_hom
     community_without_hom.initialize_attributes()
@@ -309,21 +322,11 @@ def test_calculate_diversity():
 
     community_simple_source.source_network.remove_edge(0, "s0")
     community_simple_source.source_network.remove_edge(1, "s1")
-    assert all(
-        [
-            community_simple_source.calculate_diversity(edge) == 0.5
-            for edge in community_simple_source.influence_network.edges
-        ]
-    )
+    assert community_simple_source.calculate_diversity((0, 1)) == 0.5
 
     community_simple_source.source_network.remove_edge(0, "s2")
     community_simple_source.source_network.remove_edge(1, "s2")
-    assert all(
-        [
-            community_simple_source.calculate_diversity(edge) == 1
-            for edge in community_simple_source.influence_network.edges
-        ]
-    )
+    assert community_simple_source.calculate_diversity((0, 1)) == 1
 
 
 def test_best_group():
