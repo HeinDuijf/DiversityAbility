@@ -5,16 +5,12 @@ import random as rd
 import shutil
 import time
 
-import networkx as nx
 import numpy as np
 
 import scripts.config as cfg
 from community import Community
 from determine_groups import best_group, most_diverse_group, random_group
-from scripts.basic_functions import (
-    calculate_accuracy_and_precision,
-    calculate_diversity,
-)
+from scripts.basic_functions import calculate_accuracy_and_precision
 from scripts.save_read_community import save_community_to_file
 
 
@@ -245,12 +241,13 @@ class SimulationTeams(Simulation):
             f"{source_reliability_range_str},{self.number_of_voting_simulations},"
             f"{self.number_of_agents},{community.problem_difficulty()}"
         )
+        community_new = copy.deepcopy(community)
         for group_type in self.group_types:
             group_params = {
                 "number_of_voting_simulations": self.number_of_voting_simulations,
             }
             group = []
-            community_new = copy.deepcopy(community)
+
             if group_type == "best":
                 best_result = best_group(
                     community=community, group_size=self.group_size
@@ -277,7 +274,7 @@ class SimulationTeams(Simulation):
             #     )
 
             group_params["group"] = group
-            group_params["community"] = community
+            group_params["community"] = community_new
 
             result = group_simulations(**group_params)
             accuracy = result["accuracy"]
@@ -295,9 +292,6 @@ def group_simulations(
     group: list,
     number_of_voting_simulations: int = 10,
     alpha: float = 0.05,
-    # communication: str = "unrestricted",
-    # edges=None,
-    # source_edges=None,
 ):
     """ Method for estimating the group accuracy of a group of agents in a community.
     :param community: Community
@@ -313,40 +307,31 @@ def group_simulations(
         result["precision"]: the confidence interval associated with p-value alpha
         result["diversity"]: group diversity
     """
-    # 1. Create dummy community
-    net = nx.create_empty_copy(community.influence_network)
-    net.remove_nodes_from([agent for agent in community.agents if agent not in group])
-    net.add_edges_from(nx.DiGraph(nx.complete_graph(group)).edges)
-
-    source_net = community.source_network.copy()
-    source_net.remove_nodes_from(
-        [agent for agent in community.agents if agent not in group]
+    # 1. Create community restricted to the group
+    com = copy.deepcopy(community)
+    com.remove_agents_from([agent for agent in community.agents if agent not in group])
+    com.add_influence_edges_from(
+        [
+            (agent1, agent2)
+            for agent1 in com.agents
+            for agent2 in com.agents
+            if agent1 != agent2
+        ]
     )
-    sources = community.sources
-
-    dummy_com = Community(
-        number_of_agents=0, number_of_sources=0, edges=[], source_edges=[],
-    )
-    dummy_com.add_agents_from(group)
-    dummy_com.add_sources_from(sources)
-    dummy_com.influence_network = net
-    dummy_com.source_network = source_net
-    dummy_com.initialize_attributes()
 
     # 2. Determine accuracy and diversity
-    vote_outcomes = [dummy_com.vote() for _ in range(number_of_voting_simulations)]
+    vote_outcomes = [com.vote() for _ in range(number_of_voting_simulations)]
     estimate = calculate_accuracy_and_precision(vote_outcomes, alpha=alpha)
     accuracy = estimate["accuracy"]
     precision = estimate["precision"]
 
     diversity_edges = [
-        dummy_com.influence_network.edges[edge][cfg.edge_diversity]
-        # dummy_com.calculate_diversity(edge=edge)
-        for edge in dummy_com.influence_network.edges
+        com.influence_network.edges[edge][cfg.edge_diversity]
+        for edge in com.influence_network.edges
     ]
     diversity = np.mean(diversity_edges)
 
-    average = np.mean([dummy_com.calculate_competence(agent) for agent in group])
+    average = np.mean([com.calculate_competence(agent) for agent in group])
     result = {
         "accuracy": accuracy,
         "precision": precision,
@@ -365,8 +350,8 @@ if __name__ == "__main__":
         "number_of_voting_simulations": 1000,
         "source_degree": 5,
     }
-    group_sizes = [5, 11, 21]
-    sources_range = [11, 21, 31]
+    group_sizes = [5, 11]  # , 21]
+    sources_range = [11, 21]  # , 31]
     for number_of_sources in sources_range:
         for group_size in group_sizes:
             SimulationTeams(
