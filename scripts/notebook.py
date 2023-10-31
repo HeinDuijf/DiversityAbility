@@ -1,7 +1,10 @@
+import os
 import random as rd
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import pandas as pd
+import seaborn as sns
 from community import Community
 from pyvis.network import Network
 
