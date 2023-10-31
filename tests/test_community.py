@@ -1,3 +1,5 @@
+import copy
+
 import networkx as nx
 from community import Community
 from scripts import config as cfg
@@ -8,6 +10,7 @@ params_blank = {
     "probability_preferential_attachment": None,
     "probability_homophilic_attachment": None,
     "edges": None,
+    "create": False,
 }
 community_blank = Community(**params_blank)
 community_without_hom: Community = community_blank
@@ -98,14 +101,32 @@ def check_source_network(community: Community):
         ]
     )
     assert all(
+        [len(community.source_network[source]) == 0 for source in community.sources]
+    )
+
+
+def check_source_degree(community):
+    assert all(
         [
             len(community.source_network[agent]) == community.source_degree
             for agent in community.agents
         ]
     )
-    assert all(
-        [len(community.source_network[source]) == 0 for source in community.sources]
-    )
+
+
+def test_set_source_network():
+    global community_simple_source
+    new_source_network = nx.DiGraph()
+    new_source_network.add_nodes_from(community_simple_source.sources)
+    new_source_network.add_nodes_from(community_simple_source.agents)
+    new_source_network.add_edges_from([(0, "s0"), (1, "s2")])
+    new_community = copy.deepcopy(community_simple_source)
+    new_community.set_source_network(new_source_network)
+    assert new_community.sources == community_simple_source.sources
+    check_source_network(community_simple_source)
+    check_source_network(new_community)
+    assert set(new_community.source_network[0]) == {"s0"}
+    assert set(new_community.source_network[1]) == {"s2"}
 
 
 def check_community(community: Community, params: dict):
@@ -238,52 +259,6 @@ def test_initialize_attributes():
         <= 1
         for edge in community_without_hom.influence_network.edges
     )
-    # assert all(
-    #     [
-    #         -1
-    #         <= community_with_hom.influence_network.edges[edge][cfg.edge_correlation]
-    #         <= 1
-    #         for edge in community_with_hom.influence_network.edges
-    #     ]
-    # )
-    # nodes_type_elite = [
-    #     node
-    #     for node in community_with_hom.influence_network.agents()
-    #     if community_with_hom.influence_network.nodes[node]["type"] == "elite"
-    # ]
-    # nodes_type_mass = [
-    #     node
-    #     for node in community_with_hom.influence_network.agents()
-    #     if community_with_hom.influence_network.nodes[node]["type"] == "mass"
-    # ]
-    # assert set(community_with_hom.agents_elite) == set(nodes_type_elite)
-    # assert set(community_with_hom.agents_mass) == set(nodes_type_mass)
-    # elite_competence = community_with_hom.elite_competence
-    # mass_competence = community_with_hom.mass_competence
-    # assert all(
-    #     [
-    #         community_with_hom.influence_network.agents[node]["competence"]
-    #         == elite_competence
-    #         for node in nodes_type_elite
-    #     ]
-    # )
-    # assert all(
-    #     [
-    #         community_with_hom.influence_network.agents[node]["competence"]
-    #         == mass_competence
-    #         for node in nodes_type_mass
-    #     ]
-    # )
-
-
-# def test_total_influence_elites():
-#     global community_from_edges
-#     assert community_from_edges.total_influence_elites() == (5 * 29)
-#
-#
-# def test_total_influence_mass():
-#     global community_from_edges
-#     assert community_from_edges.total_influence_mass() == (25 * 29)
 
 
 def test_update_votes():
