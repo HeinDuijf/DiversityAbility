@@ -1,4 +1,3 @@
-import copy
 import random as rd
 
 import networkx as nx
@@ -237,6 +236,8 @@ class Community:
         agent2 = edge[1]
         sources_agent1 = self.source_network[agent1]
         sources_agent2 = self.source_network[agent2]
+        if len(sources_agent1) == 0:
+            return 0
         novel_sources_agent1 = [
             source for source in sources_agent1 if source not in sources_agent2
         ]
@@ -429,4 +430,9 @@ class Community:
         for agent in new_agents:
             self.initialize_competence(agent)
         for edge in new_source_edges:
+            self.initialize_diversity(edge)
+
+    def add_influence_edges_from(self, new_edges: list):
+        self.influence_network.add_edges_from(new_edges)
+        for edge in new_edges:
             self.initialize_diversity(edge)
