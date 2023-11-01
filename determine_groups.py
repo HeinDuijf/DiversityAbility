@@ -1,21 +1,39 @@
 import random as rd
 from itertools import combinations
+from math import comb
 
+import scripts.config as cfg
 from community import Community
 from scripts.basic_functions import calculate_diversity
 
 
 def best_group(community: Community, group_size: int):
-    possible_source_sets = list(
-        combinations(community.sources, community.source_degree)
+    # Todo: speed up by excluding some possible source_sets
+    # possible_source_sets = list(
+    #     combinations(community.sources, community.source_degree)
+    # )
+    source_tuples_ordered = [
+        [source, community.source_network.nodes[source][cfg.source_reliability]]
+        for source in community.sources
+    ]
+    source_tuples_ordered.sort(key=lambda item: item[1], reverse=True)
+    sources_ordered, _ = zip(*source_tuples_ordered)
+    pruned_number_of_sources = min(
+        (
+            n
+            for n in range(community.number_of_sources)
+            if comb(n, community.source_degree) >= group_size
+        )
     )
+    pruned_sources = sources_ordered[:pruned_number_of_sources]
+    pruned_possible_source_sets = combinations(pruned_sources, community.source_degree)
     competence_tuples = [
         [source_set, community.calculate_competence(sources=source_set)]
-        for source_set in possible_source_sets
+        for source_set in pruned_possible_source_sets
     ]
     competence_tuples.sort(key=lambda item: item[1], reverse=True)
     best_source_sets = [
-        source_set for [source_set, competence] in competence_tuples[:group_size]
+        source_set for [source_set, _] in competence_tuples[:group_size]
     ]
     best_agents = list(range(group_size))
     source_net = community.source_network.copy()
