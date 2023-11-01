@@ -1,7 +1,9 @@
-from stats.table_absolute_change import table_absolute_change
-from stats.table_std_coefficients import table_std_coefficients
-from stats.table_variance import table_variance
-from stats.table_variance_multiple_datasets import table_variance_multiple_datasets
+from stats_scripts.table_absolute_change import table_absolute_change
+from stats_scripts.table_std_coefficients import table_std_coefficients
+from stats_scripts.table_variance import table_variance
+from stats_scripts.table_variance_multiple_datasets import (
+    table_variance_multiple_datasets,
+)
 
 if __name__ == "__main__":
     table_variance(data_file="data/clean.csv", output_file="table_variance")

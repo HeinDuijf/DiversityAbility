@@ -57,8 +57,8 @@ which will create a folder `new_figures` containing all the figures.
 ```commandline
 python statistics.py
 ```
-which will create several csv files in the folder `stats` with the results of the 
-statistical analysis.  
+which will create several csv files in the folder `stats_scripts` with the results of 
+the statistical analysis.  
 
 ## 3. Organization of the project
 
@@ -86,10 +86,11 @@ The script `figures.py` creates a folder `new_figures` containing all the
 figures. The folder `generate_figures` contains the scripts that generate 
 figures. Each script in that folder is associated with one of the figures. 
 
-### Statistical analysis: `statistics.py`
-The script `statistics.py` runs the statistical analysis that generates several csv 
-files in  the folder `stats`. The folder `stats` contains scripts that generate the 
-csv files. Each script in that folder is associated with one of the csv files.
+### Statistical analysis: `stats.py`
+The script `stats.py` runs the statistical analysis that generates several csv 
+files in  the folder `stats_scripts`. The folder `stats_scripts` contains scripts that 
+generate the csv files. Each script in that folder is associated with one of the csv 
+files.
 
 ## 5. Licence and citation
 This repository accompanies an academic paper (in progress). In the meantime, 
