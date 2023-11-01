@@ -25,7 +25,7 @@ params_from_edges: dict = copy.deepcopy(params_blank)
 params_simple_source: dict = copy.deepcopy(params_blank)
 
 
-def setup_module(module):
+def setup_module():
     global community_without_hom
     global community_with_hom
     global community_from_edges
