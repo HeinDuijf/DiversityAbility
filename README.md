@@ -55,7 +55,7 @@ which will create a folder `new_figures` containing all the figures.
 
 4. To run the statistical analysis, run the script
 ```commandline
-python statistics.py
+python stats.py
 ```
 which will create several csv files in the folder `stats_scripts` with the results of 
 the statistical analysis.  
