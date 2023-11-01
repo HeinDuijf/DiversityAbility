@@ -4,6 +4,7 @@ import os
 import random as rd
 import shutil
 import time
+from statistics import mean
 
 import numpy as np
 
@@ -277,11 +278,11 @@ class SimulationTeams(Simulation):
             group_params["community"] = community_new
 
             result = group_simulations(**group_params)
-            accuracy = result["accuracy"]
-            accuracy_precision = result["precision"]
-            diversity = result["diversity"]
-            average = result["average"]
-            data_line += f",{accuracy},{accuracy_precision},{diversity},{average}"
+            accuracy: float = result["accuracy"]
+            precision: float = result["precision"]
+            diversity: float = result["diversity"]
+            average: float = result["average"]
+            data_line += f",{accuracy},{precision},{diversity},{average}"
 
         with open(self.filename_csv, "a") as f:
             f.write(f"\n{data_line}")
@@ -329,9 +330,9 @@ def group_simulations(
         com.influence_network.edges[edge][cfg.edge_diversity]
         for edge in com.influence_network.edges
     ]
-    diversity = np.mean(diversity_edges)
+    diversity = mean(diversity_edges)
 
-    average = np.mean([com.calculate_competence(agent) for agent in group])
+    average = mean([com.calculate_competence(agent) for agent in group])
     result = {
         "accuracy": accuracy,
         "precision": precision,
@@ -339,23 +340,3 @@ def group_simulations(
         "average": average,
     }
     return result
-
-
-if __name__ == "__main__":
-    params = {
-        "group_types": ["best", "most_diverse", "random"],
-        "source_reliability_range": (0.5, 0.7),
-        "number_of_agents": 20,
-        "number_of_communities": 1000,
-        "number_of_voting_simulations": 1000,
-        "source_degree": 5,
-    }
-    group_sizes = [5, 11]  # , 21]
-    sources_range = [11, 21]  # , 31]
-    for number_of_sources in sources_range:
-        for group_size in group_sizes:
-            SimulationTeams(
-                group_size=group_size, number_of_sources=number_of_sources, **params,
-            ).run()
-            print(f"Number of source: {number_of_sources}")
-            print(f"Group size: {group_size}")
