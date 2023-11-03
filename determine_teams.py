@@ -2,9 +2,9 @@ import random as rd
 from itertools import combinations
 from math import comb
 
-import scripts.config as cfg
+import utils.config as cfg
 from community import Community
-from scripts.basic_functions import calculate_diversity
+from utils.basic_functions import calculate_diversity
 
 
 def best_group(community: Community, group_size: int):
