@@ -2,11 +2,11 @@ import copy
 
 import networkx as nx
 from community import Community
-from scripts import config as cfg
+from utils import config as cfg
 
 params_blank = {
     "number_of_agents": 2,
-    "influence_degree": 0,
+    "influence_degree": None,
     "probability_preferential_attachment": None,
     "probability_homophilic_attachment": None,
     "edges": None,

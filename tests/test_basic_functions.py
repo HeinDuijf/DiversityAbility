@@ -1,5 +1,5 @@
-from scripts import config as cfg
-from scripts.basic_functions import convert_math_to_text, majority_winner
+from utils import config as cfg
+from utils.basic_functions import convert_math_to_text, majority_winner
 
 # def test_most_frequent():
 #     values = ["a", "b", "c", "a", "b"]
