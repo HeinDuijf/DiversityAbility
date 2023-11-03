@@ -87,5 +87,5 @@ def table_all_regressions(data_file: str = "data/clean.csv", output_file: str = 
 
 if __name__ == "__main__":
     table_all_regressions(
-        data_file="../data/clean.csv", output_file="test_table_all_regressions",
+        data_file="../../data/clean.csv", output_file="test_table_all_regressions",
     )

@@ -6,9 +6,9 @@ from stats_scripts.table_variance_multiple_datasets import (
 )
 
 if __name__ == "__main__":
-    table_variance(data_file="data/clean.csv", output_file="table_variance")
+    table_variance(data_file="../data/clean.csv", output_file="table_variance")
     table_variance_multiple_datasets(
-        data_file="data/clean.csv", output_file="table_variance_multiple"
+        data_file="../data/clean.csv", output_file="table_variance_multiple"
     )
-    table_std_coefficients(data_file="data/clean.csv", output_file="table_std_coeff")
-    table_absolute_change(data_file="data/clean.csv", output_file="table_abs_change")
+    table_std_coefficients(data_file="../data/clean.csv", output_file="table_std_coeff")
+    table_absolute_change(data_file="../data/clean.csv", output_file="table_abs_change")

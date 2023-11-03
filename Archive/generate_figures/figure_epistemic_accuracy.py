@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
+from Archive.generate_figures.figure_basics import line_plot
 from scipy.stats import binom
-
-from generate_figures.figure_basics import line_plot
 
 
 def epistemic_accuracy(group_size: int, competence: float):
