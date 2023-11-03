@@ -29,7 +29,9 @@ class Community:
         self.number_of_agents: int = number_of_agents
         self.number_of_sources: int = number_of_sources
         self.sources_reliability_range = sources_reliability_range
+        assert source_degree <= number_of_sources
         self.source_degree: int = source_degree
+        assert influence_degree <= number_of_agents - 1
         self.influence_degree: int = influence_degree
 
         self.edges: list = edges
@@ -119,7 +121,7 @@ class Community:
             targets = rd.sample(potential_targets, self.influence_degree)
             edges_from_node = [(agent, target) for target in targets]
             net.add_edges_from(edges_from_node)
-        return net
+        self.influence_network = net
 
     def initialize_attributes(self):
         for agent in self.agents:
