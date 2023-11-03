@@ -1,13 +1,13 @@
 from community import Community
-from determine_groups import best_group, most_diverse_group, random_group
+from determine_teams import best_group, most_diverse_group, random_group
 
-community: Community
-params: dict
+community_example: Community
+params_example: dict
 
 
 def setup_module():
-    global community
-    global params
+    global community_example
+    global params_example
 
     params = {
         "number_of_agents": 100,
@@ -23,6 +23,7 @@ def setup_module():
 
 
 def test_best_group():
+    global community_example
     group_size = 3
     result = best_group(community, group_size)
     group = result["group"]
@@ -30,6 +31,7 @@ def test_best_group():
 
 
 def test_random_group():
+    global community_example
     group_size = 3
     result = random_group(community, group_size)
     group = result["group"]

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from Archive.generate_figures.figure_basics import histogram_plot
+from archive.generate_figures.figure_basics import histogram_plot
 
 
 def figure_distribution_influence(

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from Archive.generate_figures.figure_basics import line_plot
+from archive.generate_figures.figure_basics import line_plot
 from community import Community
 
 

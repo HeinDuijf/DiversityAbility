@@ -1,10 +1,10 @@
 import itertools
 
 import pandas as pd
-from Archive.stats_scripts.table_absolute_change import table_absolute_change
-from Archive.stats_scripts.table_std_coefficients import table_std_coefficients
-from Archive.stats_scripts.table_variance import table_variance
-from Archive.stats_scripts.table_variance_multiple_datasets import (
+from archive.stats_scripts.table_absolute_change import table_absolute_change
+from archive.stats_scripts.table_std_coefficients import table_std_coefficients
+from archive.stats_scripts.table_variance import table_variance
+from archive.stats_scripts.table_variance_multiple_datasets import (
     table_variance_multiple_datasets,
 )
 
