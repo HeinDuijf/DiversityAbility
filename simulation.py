@@ -8,11 +8,11 @@ from statistics import mean
 
 import numpy as np
 
-import scripts.config as cfg
+import utils.config as cfg
 from community import Community
-from determine_groups import best_group, most_diverse_group, random_group
-from scripts.basic_functions import calculate_accuracy_and_precision
-from scripts.save_read_community import save_community_to_file
+from determine_teams import best_group, most_diverse_group, random_group
+from utils.basic_functions import calculate_accuracy_and_precision
+from utils.save_read_community import save_community_to_file
 
 
 class Simulation:

@@ -3,8 +3,10 @@ import random as rd
 import networkx as nx
 import numpy as np
 
-from scripts import config as cfg
-from scripts.basic_functions import calculate_accuracy_and_precision, majority_winner
+from utils import config as cfg
+from utils.basic_functions import calculate_accuracy_and_precision, majority_winner
+
+# from icecream import ic
 
 
 class Community:
@@ -19,7 +21,7 @@ class Community:
         # Todo: set influence types (string, *params)
         influence=("all"),  # ("rd", 6), ("pref", 0.6), ("hom", 0.7), ("prefhom",
         # 0.6, 0.7
-        influence_degree: int = 6,
+        influence_degree: int = 0,
         probability_preferential_attachment: float = 0.6,
         probability_homophilic_attachment: float = None,
         edges: list = None,
@@ -128,11 +130,11 @@ class Community:
         initial_network = nx.DiGraph()
         initial_network.add_nodes_from(self.agents)
         # Add random edges
-        for node in self.agents:
+        for agent in self.agents:
             potential_targets = self.agents.copy()
-            potential_targets.remove(node)
+            potential_targets.remove(agent)
             targets = rd.sample(potential_targets, self.influence_degree)
-            edges_from_node = [(node, target) for target in targets]
+            edges_from_node = [(agent, target) for target in targets]
             initial_network.add_edges_from(edges_from_node)
         return initial_network
 
