@@ -23,8 +23,6 @@ def community_compress(community: Community):
         "d": community.influence_degree,
         "NS": community.number_of_sources,
         "ds": community.source_degree,
-        "pp": community.probability_preferential_attachment,
-        "h": community.probability_homophilic_attachment,
         **edges_dict,
         **source_edges_dict,
     }
@@ -54,12 +52,9 @@ def community_unpack(community_compressed: dict):
     ]
     community_dict = {
         "number_of_agents": community_compressed["N"],
-        # "number_of_elites": community_compressed["E"],
         "influence_degree": community_compressed["d"],
         "number_of_sources": community_compressed["NS"],
         "source_degree": community_compressed["ds"],
-        "probability_preferential_attachment": community_compressed["pp"],
-        "probability_homophilic_attachment": community_compressed["h"],
         "edges": edges,
         "source_edges": source_edges,
     }
