@@ -6,8 +6,6 @@ import numpy as np
 from utils import config as cfg
 from utils.basic_functions import calculate_accuracy_and_precision, majority_winner
 
-# from icecream import ic
-
 
 class Community:
     def __init__(
@@ -15,12 +13,7 @@ class Community:
         number_of_agents: int = 100,
         number_of_sources: int = 100,
         sources_reliability_range=(0.5, 0.7),
-        # Todo: set probability distribution of sources: string or (string, (params))
-        # For example "norm" and ("norm", (mean, std)) and "uni" and ("uni", (min, max))
         source_degree: int = 5,
-        # Todo: set influence types (string, *params)
-        influence=("all"),  # ("rd", 6), ("pref", 0.6), ("hom", 0.7), ("prefhom",
-        # 0.6, 0.7
         influence_degree: int = 1,
         edges: list = None,
         source_edges: list = None,
@@ -72,7 +65,7 @@ class Community:
         self.initialize_source_attributes()
 
     def set_source_network(self, source_network):
-        agents = self.agents
+        agents = self.agents.copy()
         new_agents = [agent for agent in agents if agent not in source_network.nodes()]
         self.sources = list(
             [node for node in source_network.nodes() if isinstance(node, str)]
@@ -87,7 +80,6 @@ class Community:
             self.initialize_source_reliability(source)
 
     def initialize_source_reliability(self, source: str, reliability: float = None):
-        # Todo: include other ways to set source reliability
         if reliability is None:
             reliability = rd.uniform(
                 self.sources_reliability_range[0], self.sources_reliability_range[1]
@@ -245,9 +237,6 @@ class Community:
         return majority_winner(list_of_votes)
 
     def update_votes(self):
-        # Todo: note that agents share their opinion, not their underlying sources.
-        #  Think about whether we should implement another mechanism where agents
-        #  share their sources instead.
         self.update_opinions()
         for agent in self.agents:
             neighborhood = list(self.influence_network[agent]) + [agent]
