@@ -2,7 +2,7 @@ import random as rd
 
 from statsmodels.stats.proportion import proportion_confint
 
-import scripts.config as cfg
+import utils.config as cfg
 
 
 def majority_winner(values: list):
