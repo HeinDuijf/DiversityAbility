@@ -21,9 +21,7 @@ class Community:
         # Todo: set influence types (string, *params)
         influence=("all"),  # ("rd", 6), ("pref", 0.6), ("hom", 0.7), ("prefhom",
         # 0.6, 0.7
-        influence_degree: int = 0,
-        probability_preferential_attachment: float = 0.6,
-        probability_homophilic_attachment: float = None,
+        influence_degree: int = 1,
         edges: list = None,
         source_edges: list = None,
         create: bool = True,
@@ -33,18 +31,14 @@ class Community:
         self.sources_reliability_range = sources_reliability_range
         self.source_degree: int = source_degree
         self.influence_degree: int = influence_degree
-        self.probability_preferential_attachment: float = (
-            probability_preferential_attachment
-        )
-        self.probability_homophilic_attachment: float = (
-            probability_homophilic_attachment
-        )
+
         self.edges: list = edges
         self.source_edges: list = source_edges
 
         self.agents: list = list(range(number_of_agents))
         self.sources: list = [f"s{k}" for k in range(self.number_of_sources)]
 
+        # Initialize networks
         self.source_network = nx.DiGraph()
         self.influence_network = nx.DiGraph()
 
@@ -99,123 +93,33 @@ class Community:
         self.source_network.nodes[source][cfg.source_reliability] = reliability
 
     def create_influence_network(self):
-        """Returns a directed influence_network according to multi-type preferential
-        attachment by amending the Barabási-Albert preferential attachment procedure,
-        unless edges are given."""
+        """Creates the influence network, which is a directed network on the agents.
+        The creation method is random unless edges are given."""
         if self.edges is not None:
-            self.create_network_from_edges()
+            self.create_influence_network_from_edges()
             self.initialize_attributes()
             return
 
-        # Create initial influence_network.
-        if self.probability_homophilic_attachment is None:
-            # Create influence_network without homophilic influence
-            initial_network = (
-                self.create_initial_network_without_homophilic_attachment()
-            )
-        else:
-            initial_network = self.create_initial_network_with_homophilic_attachment()
-
-        # Preferential rewiring.
-        self.influence_network = self.rewire_network(initial_network)
+        self.create_random_influence_network()
         self.initialize_attributes()
 
-    def create_network_from_edges(self):
+    def create_influence_network_from_edges(self):
         self.influence_network = nx.DiGraph()
         self.influence_network.add_nodes_from(self.agents)
         self.influence_network.add_edges_from(self.edges)
 
-    def create_initial_network_without_homophilic_attachment(self):
+    def create_random_influence_network(self):
         # Initialize influence_network and agents
-        initial_network = nx.DiGraph()
-        initial_network.add_nodes_from(self.agents)
+        net = nx.DiGraph()
+        net.add_nodes_from(self.agents)
         # Add random edges
         for agent in self.agents:
             potential_targets = self.agents.copy()
             potential_targets.remove(agent)
             targets = rd.sample(potential_targets, self.influence_degree)
             edges_from_node = [(agent, target) for target in targets]
-            initial_network.add_edges_from(edges_from_node)
-        return initial_network
-
-    def create_initial_network_with_homophilic_attachment(self):
-        # Initialize influence_network and agents
-        initial_network = nx.DiGraph()
-        initial_network.add_nodes_from(self.agents)
-
-        # Homophilic attachment
-        for agent in self.agents:
-            random_list = np.random.random_sample(self.influence_degree)
-            number_targets_same_type = len(
-                [x for x in random_list if x < self.probability_homophilic_attachment]
-            )
-            number_targets_diff_type = self.influence_degree - number_targets_same_type
-            if agent in self.agents_elite:
-                nodes_same_type = self.agents_elite.copy()
-                nodes_same_type.remove(agent)
-                nodes_diff_type = self.agents_mass
-            else:
-                nodes_same_type = self.agents_mass.copy()
-                nodes_same_type.remove(agent)
-                nodes_diff_type = self.agents_elite
-            targets_same_type = rd.sample(nodes_same_type, number_targets_same_type)
-            targets_diff_type = rd.sample(nodes_diff_type, number_targets_diff_type)
-            targets = targets_same_type + targets_diff_type
-            edges_from_source = [(agent, target) for target in targets]
-            initial_network.add_edges_from(edges_from_source)
-        return initial_network
-
-    def rewire_network(self, initial_network, multi_type=False):
-        # Initialize influence_network and agents
-        network = nx.DiGraph()
-        network.add_nodes_from(self.agents)
-
-        # Multi-type preferential attachment
-        edges_to_do = list(initial_network.edges()).copy()
-        rd.shuffle(edges_to_do)
-        for (source, target) in edges_to_do:
-            # Define potential targets
-            if multi_type:
-                if target in self.agents_elite:
-                    agents_of_target_type = self.agents_elite
-                else:
-                    agents_of_target_type = self.agents_mass
-                potential_targets = [
-                    agent
-                    for agent in agents_of_target_type
-                    if agent not in network[source] and agent != source
-                ]
-            else:
-                potential_targets = [
-                    agent
-                    for agent in self.agents
-                    if agent not in network[source] and agent != source
-                ]
-            # Preferential attachment
-            if rd.random() < self.probability_preferential_attachment:
-                list_of_tuples = list(
-                    network.in_degree(potential_targets)
-                )  # list of tuples of the form (node, in_degree of node)
-                potential_targets_in_degrees = list(
-                    map(lambda tuple_item: tuple_item[1], list_of_tuples)
-                )
-                if not potential_targets:
-                    break
-                elif all(w == 0 for w in potential_targets_in_degrees):
-                    # catches the case where all weights are zero
-                    target_new = rd.choice(potential_targets)
-                else:
-                    target_new = rd.choices(
-                        population=potential_targets,
-                        weights=potential_targets_in_degrees,
-                    )[0]
-                    # Note on [0]: rd.choices produces a list
-            else:
-                # Random attachment
-                target_new = rd.choice(potential_targets)
-            # add edge to new influence_network and remove edge from edges_to_do
-            network.add_edge(source, target_new)
-        return network
+            net.add_edges_from(edges_from_node)
+        return net
 
     def initialize_attributes(self):
         for agent in self.agents:
