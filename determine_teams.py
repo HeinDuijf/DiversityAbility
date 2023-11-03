@@ -7,11 +7,7 @@ from community import Community
 from utils.basic_functions import calculate_diversity
 
 
-def best_group(community: Community, group_size: int):
-    # Todo: speed up by excluding some possible source_sets
-    # possible_source_sets = list(
-    #     combinations(community.sources, community.source_degree)
-    # )
+def best_team(community: Community, group_size: int):
     source_tuples_ordered = [
         [source, community.source_network.nodes[source][cfg.source_reliability]]
         for source in community.sources
@@ -46,7 +42,7 @@ def best_group(community: Community, group_size: int):
     return result
 
 
-def most_diverse_group(community: Community, group_size: int):
+def most_diverse_team(community: Community, group_size: int):
     possible_source_sets = list(
         combinations(community.sources, community.source_degree)
     )
@@ -77,7 +73,7 @@ def most_diverse_group(community: Community, group_size: int):
     return result
 
 
-def random_group(community: Community, group_size: int):
+def random_team(community: Community, group_size: int):
     possible_source_sets = list(
         combinations(community.sources, community.source_degree)
     )

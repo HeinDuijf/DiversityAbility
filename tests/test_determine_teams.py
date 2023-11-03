@@ -1,5 +1,5 @@
 from community import Community
-from determine_teams import best_group, most_diverse_group, random_group
+from determine_teams import best_team, most_diverse_team, random_team
 
 community_example: Community
 params_example: dict
@@ -23,7 +23,7 @@ def setup_module():
 def test_best_group():
     global community_example
     group_size = 3
-    result = best_group(community_example, group_size)
+    result = best_team(community_example, group_size)
     group = result["group"]
     assert len(group) == group_size
 
@@ -31,6 +31,6 @@ def test_best_group():
 def test_random_group():
     global community_example
     group_size = 3
-    result = random_group(community_example, group_size)
+    result = random_team(community_example, group_size)
     group = result["group"]
     assert len(group) == group_size
