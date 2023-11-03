@@ -1,4 +1,4 @@
-from simulation import SimulationTeams
+from simulation import Simulation
 
 if __name__ == "__main__":
     params = {
@@ -17,6 +17,6 @@ if __name__ == "__main__":
                 f"Started: Number of sources {number_of_sources} | Group size:"
                 f" {group_size}"
             )
-            SimulationTeams(
+            Simulation(
                 group_size=group_size, number_of_sources=number_of_sources, **params,
             ).run()
