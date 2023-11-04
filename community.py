@@ -1,4 +1,5 @@
 import random as rd
+from statistics import mean
 
 import networkx as nx
 import numpy as np
@@ -65,13 +66,23 @@ class Community:
         self.initialize_source_attributes()
 
     def set_source_network(self, source_network):
-        agents = self.agents.copy()
-        new_agents = [agent for agent in agents if agent not in source_network.nodes()]
-        self.sources = list(
-            [node for node in source_network.nodes() if isinstance(node, str)]
-        )
+        source_network_agents = [
+            agent for agent in source_network.nodes() if isinstance(agent, int)
+        ]
+        new_agents = [
+            agent for agent in source_network_agents if agent not in self.agents
+        ]
+        source_network_sources = [
+            source for source in source_network.nodes() if isinstance(source, str)
+        ]
+        new_sources = [
+            source for source in source_network_sources if source not in self.sources
+        ]
+        self.add_sources_from(new_sources)
         self.add_agents_from(new_agents)
         self.source_network = source_network
+        for agent in self.agents:
+            self.initialize_competence(agent)
         for edge in self.influence_network.edges:
             self.initialize_diversity(edge)
 
@@ -122,16 +133,16 @@ class Community:
             self.initialize_diversity(edge)
 
     def initialize_competence(self, agent):
-        self.influence_network.nodes[agent][
-            cfg.agent_competence
-        ] = self.calculate_competence(agent=agent)
+        agent_competence = self.calculate_competence(agent=agent)
+        self.influence_network.nodes[agent][cfg.agent_competence] = agent_competence
+        self.source_network.nodes[agent][cfg.agent_competence] = agent_competence
 
     def initialize_diversity(self, edge):
         self.influence_network.edges[edge][
             cfg.edge_diversity
-        ] = self.calculate_diversity(edge)
+        ] = self.calculate_edge_diversity(edge)
 
-    def calculate_diversity(self, edge):
+    def calculate_edge_diversity(self, edge):
         agent1 = edge[0]
         agent2 = edge[1]
         sources_agent1 = self.source_network[agent1]
@@ -229,6 +240,33 @@ class Community:
         result = calculate_accuracy_and_precision(vote_outcomes, alpha=alpha)
         return result
 
+    def diversity(self, unrestricted=False):
+        if unrestricted:
+            diversity_list = [
+                self.calculate_edge_diversity((agent1, agent2))
+                for agent1 in self.agents
+                for agent2 in self.agents
+                if agent1 < agent2
+            ]
+            diversity = mean(diversity_list)
+            return diversity
+
+        diversity_edges = [
+            self.influence_network.edges[edge][cfg.edge_diversity]
+            for edge in self.influence_network.edges
+        ]
+        diversity = mean(diversity_edges)
+        return diversity
+
+    def average_competence(self):
+        average = mean(
+            [
+                self.source_network.nodes[agent][cfg.agent_competence]
+                for agent in self.agents
+            ]
+        )
+        return average
+
     def vote(self):
         self.update_votes()
         list_of_votes = [
@@ -271,7 +309,7 @@ class Community:
     def add_agents_from(self, new_agents: list):
         if not isinstance(new_agents, list):
             new_agents = [new_agents]
-        self.agents += new_agents
+        self.agents = self.agents + new_agents
         self.number_of_agents = len(self.agents)
         self.influence_network.add_nodes_from(new_agents)
         self.source_network.add_nodes_from(new_agents)
@@ -333,3 +371,6 @@ class Community:
         self.influence_network.add_edges_from(new_edges)
         for edge in new_edges:
             self.initialize_diversity(edge)
+
+    def remove_influence_edges_from(self, edges: list):
+        self.influence_network.remove_edges_from(edges)
