@@ -66,9 +66,9 @@ on some simulations. The notebook contains some graphs that illustrate the trade
 between ability, diversity and randomness. 
 
 ### Simulations: `simulation.py`
-The central class `SimulationTeams` and method `SimulationTeams.run()` is defined in 
+The central class `Simulation` and method `Simulation.run()` is defined in 
 `simulation.py`, the method produces the csv files in the folder `data`. The 
-method `SimulationTeams.run()` runs a simulation consisting of generating 
+method `Simulation.run()` runs a simulation consisting of generating 
 `number_of_communities` communities and creating the three types of teams for each 
 community and estimating the accuracy of each team by running 
 `number_of_voting_simulations` voting simulations.
