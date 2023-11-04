@@ -2,7 +2,7 @@ from simulation import Simulation
 
 if __name__ == "__main__":
     params = {
-        "group_types": ["best", "most_diverse", "random"],
+        "team_types": ["best", "most_diverse", "random"],
         "source_reliability_range": (0.5, 0.7),
         "number_of_agents": 20,
         "number_of_communities": 10 ** 3,
