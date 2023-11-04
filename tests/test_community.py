@@ -95,11 +95,25 @@ def test_set_source_network():
     global community_simple_source
     new_source_network = nx.DiGraph()
     new_source_network.add_nodes_from(community_simple_source.sources)
+    new_source_network.add_nodes_from(["s100", "s101"])
     new_source_network.add_nodes_from(community_simple_source.agents)
+    new_source_network.add_nodes_from([100, 101])
+    new_source_network.remove_nodes_from([0])
     new_source_network.add_edges_from([(0, "s0"), (1, "s2")])
     new_community = copy.deepcopy(community_simple_source)
     new_community.set_source_network(new_source_network)
-    assert new_community.sources == community_simple_source.sources
+    new_agents = community_simple_source.agents + [100, 101]
+    assert set(new_community.sources) == set(
+        community_simple_source.sources + ["s100", "s101"]
+    )
+    assert set(new_community.agents) == set(new_agents)
+    assert set(new_community.sources) == set(
+        [
+            source
+            for source in new_community.source_network.nodes()
+            if isinstance(source, str)
+        ]
+    )
     check_source_network(community_simple_source)
     check_source_network(new_community)
     assert set(new_community.source_network[0]) == {"s0"}
@@ -180,25 +194,22 @@ def test_create_network():
 
 def test_add_agents_from():
     community = Community(number_of_agents=20)
-    initial_agents = community.agents
+    initial_agents = community.agents.copy()
     community.add_agents_from([99, 33])
-    assert all([agent in initial_agents for agent in community.agents])
-    assert all(
-        [agent in [99, 33] for agent in community.agents if agent not in initial_agents]
-    )
+    assert set(initial_agents + [99, 33]) == set(community.agents)
+    assert all([agent in community.source_network.nodes() for agent in [99, 33]])
+    assert set(community.agents) == set(community.influence_network.nodes())
     assert community.number_of_agents == 20 + 2
 
 
 def test_remove_agents_from():
     community = Community(number_of_agents=20)
-    initial_agents = community.agents
+    initial_agents = community.agents.copy()
+    new_agents = [agent for agent in initial_agents if agent != 1 and agent != 3]
     community.remove_agents_from([1, 3])
-    assert all([agent in initial_agents for agent in community.agents])
-    assert all([agent not in [1, 3] for agent in community.agents])
+    assert set(new_agents) == set(community.agents)
     assert all([agent not in community.source_network.nodes() for agent in [1, 3]])
-    assert all(
-        [agent in community.agents for agent in community.influence_network.nodes()]
-    )
+    assert set(community.agents) == set(community.influence_network.nodes())
     assert community.number_of_agents == 20 - 2
 
 
@@ -291,18 +302,18 @@ def test_calculate_diversity():
     global community_simple_source
     assert all(
         [
-            community_simple_source.calculate_diversity(edge) == 0
+            community_simple_source.calculate_edge_diversity(edge) == 0
             for edge in community_simple_source.influence_network.edges
         ]
     )
 
     community_simple_source.source_network.remove_edge(0, "s0")
     community_simple_source.source_network.remove_edge(1, "s1")
-    assert community_simple_source.calculate_diversity((0, 1)) == 0.5
+    assert community_simple_source.calculate_edge_diversity((0, 1)) == 0.5
 
     community_simple_source.source_network.remove_edge(0, "s2")
     community_simple_source.source_network.remove_edge(1, "s2")
-    assert community_simple_source.calculate_diversity((0, 1)) == 1
+    assert community_simple_source.calculate_edge_diversity((0, 1)) == 1
 
 
 def test_best_group():
