@@ -19,21 +19,19 @@ def calculate_accuracy_and_precision(list_of_items, alpha: float = 0.05):
     """ Basic function to calculate the accuracy and precision of a list of items.
     :param list_of_items
     :param alpha
-    :returns dict
-        keys "accuracy" and "precision"
+    :returns tuple
+        accuracy, precision
     """
     number_of_items = len(list_of_items)
     number_of_success = len(
         [outcome for outcome in list_of_items if outcome == cfg.vote_for_positive]
     )
-    estimated_accuracy = number_of_success / number_of_items
+    accuracy = number_of_success / number_of_items
     confidence_interval = proportion_confint(
         number_of_success, number_of_items, alpha=alpha
     )
-    result = {
-        "accuracy": estimated_accuracy,
-        "precision": max(confidence_interval) - min(confidence_interval),
-    }
+    precision = max(confidence_interval) - min(confidence_interval)
+    result = accuracy, precision
     return result
 
 
