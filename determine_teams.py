@@ -1,3 +1,4 @@
+import copy
 import random as rd
 from itertools import combinations
 from math import comb
@@ -7,7 +8,7 @@ from community import Community
 from utils.basic_functions import calculate_diversity
 
 
-def best_team(community: Community, group_size: int):
+def best_team(community: Community, group_size: int) -> Community:
     source_tuples_ordered = [
         [source, community.source_network.nodes[source][cfg.source_reliability]]
         for source in community.sources
@@ -38,11 +39,15 @@ def best_team(community: Community, group_size: int):
     for agent in best_agents:
         edges = [(agent, source) for source in best_source_sets[agent]]
         source_net.add_edges_from(edges)
-    result = {"group": best_agents, "source_network": source_net}
-    return result
+    team = copy.deepcopy(community)
+    team.remove_agents_from(
+        [agent for agent in community.agents if agent not in best_agents]
+    )
+    team.set_source_network(source_net)
+    return team
 
 
-def most_diverse_team(community: Community, group_size: int):
+def diverse_team(community: Community, group_size: int) -> Community:
     possible_source_sets = list(
         combinations(community.sources, community.source_degree)
     )
@@ -69,11 +74,15 @@ def most_diverse_team(community: Community, group_size: int):
     for agent in diverse_group:
         edges = [(agent, source) for source in diverse_source_sets[agent]]
         source_net.add_edges_from(edges)
-    result = {"group": diverse_group, "source_network": source_net}
-    return result
+    team = copy.deepcopy(community)
+    team.remove_agents_from(
+        [agent for agent in community.agents if agent not in diverse_group]
+    )
+    team.set_source_network(source_net)
+    return team
 
 
-def random_team(community: Community, group_size: int):
+def random_team(community: Community, group_size: int) -> Community:
     possible_source_sets = list(
         combinations(community.sources, community.source_degree)
     )
@@ -85,5 +94,9 @@ def random_team(community: Community, group_size: int):
     for agent in random_agents:
         edges = [(agent, source) for source in random_source_sets[agent]]
         source_net.add_edges_from(edges)
-    result = {"group": random_agents, "source_network": source_net}
-    return result
+    team = copy.deepcopy(community)
+    team.remove_agents_from(
+        [agent for agent in community.agents if agent not in random_agents]
+    )
+    team.set_source_network(source_net)
+    return team
