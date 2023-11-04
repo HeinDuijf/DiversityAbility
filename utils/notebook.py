@@ -1,3 +1,4 @@
+import copy
 import glob
 import os
 import random as rd
@@ -8,6 +9,7 @@ import pandas as pd
 import pyvis
 import seaborn as sns
 from community import Community
+from determine_teams import best_team, diverse_team, random_team
 from pyvis.network import Network
 
 import config as cfg
@@ -26,7 +28,7 @@ def visualize(
     edge_type="vertical",
 ):
     net = Network(
-        height="500px",
+        height="200px",
         width="100%",
         directed=True,
         notebook=True,
@@ -61,7 +63,7 @@ def visualize(
     net.set_edge_smooth(edge_type)
     for edge in com.source_network.edges:
         net.add_edge(source=edge[0], to=edge[1], color=sources_coloring[edge[1]])
-    net.hrepulsion(node_distance=200, damping=0.4)
+    # net.hrepulsion(node_distance=200, damping=0.4)
     net.prep_notebook()
     return net
 
