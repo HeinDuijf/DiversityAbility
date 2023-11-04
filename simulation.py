@@ -7,8 +7,8 @@ from statistics import mean
 
 import utils.config as cfg
 from community import Community
-from determine_teams import best_team, most_diverse_team, random_team
-from utils.basic_functions import calculate_accuracy_and_precision
+from determine_teams import best_team, diverse_team, random_team
+from utils.basic_functions import calculate_accuracy_and_precision, calculate_diversity
 from utils.save_read_community import save_community_to_file
 
 
@@ -22,7 +22,7 @@ class Simulation:
         number_of_agents: int = 100,
         influence_degree: int = 6,
         group_size=10,
-        group_types=("best", "most_diverse", "random"),
+        team_types=("best", "most_diverse", "random"),
         number_of_sources=10,
         source_degree=5,
         source_reliability_range=(0.5, 0.7),
@@ -39,7 +39,7 @@ class Simulation:
         self.influence_degree = influence_degree
 
         self.group_size = group_size
-        self.group_types = group_types
+        self.team_types = team_types
         self.number_of_sources = number_of_sources
         self.source_degree = source_degree
         self.source_reliability_range = source_reliability_range
@@ -110,10 +110,10 @@ class Simulation:
             + "number_of_agents,"
             + "difficulty"
         )
-        for group_type in self.group_types:
+        for team_type in self.team_types:
             head_line += (
-                f",{group_type}_accuracy,{group_type}_accuracy_precision"
-                f",{group_type}_diversity,{group_type}_average"
+                f",{team_type}_accuracy,{team_type}_precision"
+                f",{team_type}_diversity,{team_type}_average"
             )
         with open(self.filename_csv, "w") as f:
             f.write(head_line)
@@ -127,38 +127,22 @@ class Simulation:
             f"{source_reliability_range_str},{self.number_of_voting_simulations},"
             f"{self.number_of_agents},{community.problem_difficulty()}"
         )
-        community_new = copy.deepcopy(community)
-        for group_type in self.group_types:
-            group_params = {
-                "number_of_voting_simulations": self.number_of_voting_simulations,
-            }
-            group = []
 
-            if group_type == "best":
-                best_result = best_team(community=community, group_size=self.group_size)
-                group = best_result["group"]
-                community_new.set_source_network(best_result["source_network"])
-            if group_type == "most_diverse":
-                diverse_result = most_diverse_team(
-                    community=community, group_size=self.group_size
-                )
-                group = diverse_result["group"]
-                community_new.set_source_network(diverse_result["source_network"])
-            if group_type == "random":
-                random_result = random_team(
-                    community=community, group_size=self.group_size
-                )
-                group = random_result["group"]
-                community_new.set_source_network(random_result["source_network"])
+        for team_type in self.team_types:
+            team: Community = community
 
-            group_params["group"] = group
-            group_params["community"] = community_new
+            if team_type == "best":
+                team = best_team(community=community, group_size=self.group_size)
+            if team_type == "most_diverse":
+                team = diverse_team(community=community, group_size=self.group_size)
+            if team_type == "random":
+                team = random_team(community=community, group_size=self.group_size)
 
-            result = team_simulation(**group_params)
-            accuracy: float = result["accuracy"]
-            precision: float = result["precision"]
-            diversity: float = result["diversity"]
-            average: float = result["average"]
+            accuracy, precision = team.estimated_community_accuracy(
+                number_of_voting_simulations=self.number_of_voting_simulations
+            )
+            diversity: float = team.diversity(unrestricted=True)
+            average: float = team.average_competence()
             data_line += f",{accuracy},{precision},{diversity},{average}"
 
         with open(self.filename_csv, "a") as f:
@@ -184,7 +168,7 @@ class Simulation:
 
 def team_simulation(
     community: Community,
-    group: list,
+    group: list = None,
     number_of_voting_simulations: int = 10,
     alpha: float = 0.05,
 ):
@@ -204,15 +188,11 @@ def team_simulation(
     """
     # 1. Create community restricted to the group
     com = copy.deepcopy(community)
-    com.remove_agents_from([agent for agent in community.agents if agent not in group])
-    com.add_influence_edges_from(
-        [
-            (agent1, agent2)
-            for agent1 in com.agents
-            for agent2 in com.agents
-            if agent1 != agent2
-        ]
-    )
+    if group is not None:
+        com.remove_agents_from(
+            [agent for agent in community.agents if agent not in group]
+        )
+    com.remove_influence_edges_from(com.influence_network.edges())
 
     # 2. Determine accuracy and diversity
     vote_outcomes = [com.vote() for _ in range(number_of_voting_simulations)]
@@ -220,13 +200,21 @@ def team_simulation(
     accuracy = estimate["accuracy"]
     precision = estimate["precision"]
 
-    diversity_edges = [
-        com.influence_network.edges[edge][cfg.edge_diversity]
-        for edge in com.influence_network.edges
-    ]
-    diversity = mean(diversity_edges)
+    # diversity_edges = [
+    #     com.influence_network.edges[edge][cfg.edge_diversity]
+    #     for edge in com.influence_network.edges
+    # ]
+    # diversity = mean(diversity_edges)
 
-    average = mean([com.calculate_competence(agent) for agent in group])
+    diversity_list = [
+        calculate_diversity(com.source_network[agent1], com.source_network[agent2])
+        for agent1 in com.agents
+        for agent2 in com.agents
+        if agent1 < agent2
+    ]
+    diversity = mean(diversity_list)
+
+    average = mean([com.source_network[agent][cfg.agent_competence] for agent in group])
     result = {
         "accuracy": accuracy,
         "precision": precision,
