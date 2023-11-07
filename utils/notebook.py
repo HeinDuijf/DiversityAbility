@@ -58,12 +58,12 @@ def visualize(
             title=f"Agent {agent}",
             color=agents_coloring[agent],
             level=4,
-            size=10,
+            size=20,
         )
     net.set_edge_smooth(edge_type)
     for edge in com.source_network.edges:
         net.add_edge(source=edge[0], to=edge[1], color=sources_coloring[edge[1]])
-    # net.hrepulsion(node_distance=200, damping=0.4)
+    net.hrepulsion(node_distance=200, damping=0.1)
     net.prep_notebook()
     return net
 
@@ -72,15 +72,25 @@ def sort_sources(com: Community, sorting: str = "degree"):
     sources_tuples = [(0, 0)]
     if sorting == "degree":
         sources_tuples = [
-            (source, com.source_network.in_degree[source]) for source in com.sources
+            (
+                source,
+                com.source_network.in_degree[source],
+                com.source_network.nodes[source][cfg.source_reliability],
+            )
+            for source in com.sources
         ]
     elif sorting == "reliability":
         sources_tuples = [
-            (source, com.source_network.nodes[source][cfg.source_reliability])
+            (
+                source,
+                com.source_network.nodes[source][cfg.source_reliability],
+                com.source_network.in_degree[source],
+            )
             for source in com.sources
         ]
+    sources_tuples.sort(key=lambda item: item[2], reverse=True)
     sources_tuples.sort(key=lambda item: item[1], reverse=True)
-    sources_ordered, _ = zip(*sources_tuples)
+    sources_ordered, _, _ = zip(*sources_tuples)
     return sources_ordered
 
 
@@ -113,8 +123,8 @@ def size_sources(com: Community, sizing):
     minimum = min(source_sizing.values())
     maximum = max(source_sizing.values())
     for source in com.sources:
-        source_sizing[source] = (
-            50 * (source_sizing[source] - minimum) / (maximum - minimum)
+        source_sizing[source] = 10 + 40 * (source_sizing[source] - minimum) / (
+            maximum - minimum
         )
     return source_sizing
 
