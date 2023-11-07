@@ -14,7 +14,10 @@ teams:
 3. Teams consisting of a randomly selected agents. 
 
 Preliminary findings suggest that there is no significant performance difference 
-between these three types of teams. 
+between these three types of teams. To get a feel for the 
+agent-based model, see the picture below and the [Jupyter Notebook](/NotebookWalkthrough.ipynb).
+
+[![A picture of an example of a team consisting of randomly selected agents](/www/example_random_team.png "An example of an agent-based model")]()
 
 
 ## 1. Setup
