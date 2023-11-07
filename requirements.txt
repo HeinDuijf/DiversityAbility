@@ -8,3 +8,4 @@ statsmodels
 pytest
 pyvis
 statistics
+notebook
