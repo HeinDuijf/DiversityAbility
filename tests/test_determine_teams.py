@@ -1,5 +1,5 @@
 from community import Community
-from determine_teams import best_team, most_diverse_team, random_team
+from determine_teams import best_team, diverse_team, random_team
 
 community_example: Community
 params_example: dict
