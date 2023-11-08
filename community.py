@@ -75,10 +75,16 @@ class Community:
         source_network_sources = [
             source for source in source_network.nodes() if isinstance(source, str)
         ]
-        new_sources = [
-            source for source in source_network_sources if source not in self.sources
+        new_sources_tuples = [
+            (source, source_network.nodes[source][cfg.source_reliability])
+            for source in source_network_sources
+            if source not in self.sources
         ]
-        self.add_sources_from(new_sources)
+        new_sources, new_reliabilities = zip(*new_sources_tuples)
+        self.add_sources_from(
+            new_sources=new_sources,
+            new_source_reliabilities=new_reliabilities
+        )
         self.add_agents_from(new_agents)
         self.source_network = source_network
         for agent in self.agents:
@@ -160,6 +166,8 @@ class Community:
         if agent is not None:
             sources = list(self.source_network[agent])
         number_of_sources = len(sources)
+        if number_of_sources == 0:
+            return 0
         threshold = number_of_sources / 2
         powerset = (
             list(bin(number)[2:].zfill(number_of_sources))
@@ -327,7 +335,7 @@ class Community:
     def add_sources_from(
         self, new_sources: list, new_source_reliabilities: list = None
     ):
-        if not isinstance(new_sources, list):
+        if isinstance(new_sources, str):
             new_sources = [new_sources]
         if new_source_reliabilities is None:
             new_source_reliabilities = [None for _ in new_sources]
@@ -357,15 +365,17 @@ class Community:
                 self.initialize_diversity((agent, target))
 
     def add_source_edges_from(self, new_source_edges: list):
-        new_sources = [source for agent, source in new_source_edges]
-        new_agents = [agent for agent, source in new_source_edges]
+        new_sources = [
+            source for agent, source in new_source_edges if source not in self.sources
+        ]
+        new_agents = [
+            agent for agent, source in new_source_edges if agent not in self.agents
+        ]
         self.add_sources_from(new_sources)
         self.add_agents_from(new_agents)
         self.source_network.add_edges_from(new_source_edges)
-        for agent in new_agents:
-            self.initialize_competence(agent)
-        for edge in new_source_edges:
-            self.initialize_diversity(edge)
+
+        self.initialize_attributes()
 
     def add_influence_edges_from(self, new_edges: list):
         self.influence_network.add_edges_from(new_edges)

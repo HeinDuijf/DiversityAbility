@@ -93,13 +93,15 @@ def check_source_degree(community):
 
 def test_set_source_network():
     global community_simple_source
-    new_source_network = nx.DiGraph()
-    new_source_network.add_nodes_from(community_simple_source.sources)
+    new_source_network = copy.deepcopy(community_simple_source.source_network)
     new_source_network.add_nodes_from(["s100", "s101"])
-    new_source_network.add_nodes_from(community_simple_source.agents)
+    new_source_network.nodes["s100"][cfg.source_reliability] = 0.55
+    new_source_network.nodes["s101"][cfg.source_reliability] = 0.55
     new_source_network.add_nodes_from([100, 101])
     new_source_network.remove_nodes_from([0])
+    new_source_network.remove_edges_from(community_simple_source.source_network.edges())
     new_source_network.add_edges_from([(0, "s0"), (1, "s2")])
+
     new_community = copy.deepcopy(community_simple_source)
     new_community.set_source_network(new_source_network)
     new_agents = community_simple_source.agents + [100, 101]
@@ -217,6 +219,9 @@ def test_add_sources_from():
     community = Community(number_of_agents=20, number_of_sources=10)
     initial_sources = community.sources
     community.add_sources_from(["s99", "s33"])
+    assert set(community.sources) == {
+        "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7","s8", "s9", "s99", "s33"
+    }
     assert all([source in initial_sources for source in community.sources])
     assert all(
         [
