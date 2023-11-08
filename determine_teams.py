@@ -33,17 +33,13 @@ def best_team(community: Community, group_size: int) -> Community:
         source_set for [source_set, _] in competence_tuples[:group_size]
     ]
     best_agents = list(range(group_size))
-    source_net = community.source_network.copy()
-    source_net.remove_nodes_from(community.agents)
-    source_net.add_nodes_from(best_agents)
+
+    team = copy.deepcopy(community)
+    team.remove_agents_from(community.agents)
+    team.add_agents_from(best_agents)
     for agent in best_agents:
         edges = [(agent, source) for source in best_source_sets[agent]]
-        source_net.add_edges_from(edges)
-    team = copy.deepcopy(community)
-    team.remove_agents_from(
-        [agent for agent in community.agents if agent not in best_agents]
-    )
-    team.set_source_network(source_net)
+        team.add_source_edges_from(edges)
     return team
 
 
@@ -68,17 +64,13 @@ def diverse_team(community: Community, group_size: int) -> Community:
                 source_set, new_source_set
             )
     diverse_group = list(range(group_size))
-    source_net = community.source_network.copy()
-    source_net.remove_nodes_from(community.agents)
-    source_net.add_nodes_from(diverse_group)
+
+    team = copy.deepcopy(community)
+    team.remove_agents_from(community.agents)
+    team.add_agents_from(diverse_group)
     for agent in diverse_group:
         edges = [(agent, source) for source in diverse_source_sets[agent]]
-        source_net.add_edges_from(edges)
-    team = copy.deepcopy(community)
-    team.remove_agents_from(
-        [agent for agent in community.agents if agent not in diverse_group]
-    )
-    team.set_source_network(source_net)
+        team.add_source_edges_from(edges)
     return team
 
 
@@ -88,15 +80,11 @@ def random_team(community: Community, group_size: int) -> Community:
     )
     random_source_sets = rd.sample(possible_source_sets, group_size)
     random_agents = list(range(group_size))
-    source_net = community.source_network.copy()
-    source_net.remove_nodes_from(community.agents)
-    source_net.add_nodes_from(random_agents)
+
+    team = copy.deepcopy(community)
+    team.remove_agents_from(community.agents)
+    team.add_agents_from(random_agents)
     for agent in random_agents:
         edges = [(agent, source) for source in random_source_sets[agent]]
-        source_net.add_edges_from(edges)
-    team = copy.deepcopy(community)
-    team.remove_agents_from(
-        [agent for agent in community.agents if agent not in random_agents]
-    )
-    team.set_source_network(source_net)
+        team.add_source_edges_from(edges)
     return team
