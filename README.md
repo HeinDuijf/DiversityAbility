@@ -52,7 +52,7 @@ which will open a jupyter notebook in your browser.
 
 ## 3. Organization of the project
 
-### Jupyter notebook: `NotebookWalkthrough.ipynb`
+### Illustration of the agent-based model: `NotebookWalkthrough.ipynb`
 The jupyter notebook walks you through the stages of the agent-based model 
 `Community` using some network visualizations. To minimalize the amount of code in the 
 notebook, some scripts are stored in `scripts/notebook.py`, which is run in one of the 
@@ -63,7 +63,7 @@ The central class `Community` is defined in `community.py`. A `Community` is an
 *agent-based model* consisting of a network of sources and agents, and it can be 
 used to compute the estimated accuracy of a given group of agents. 
 
-### Jupyter notebook: `DataAnalysis.ipynb`
+### Preliminary data analysis: `DataAnalysis.ipynb`
 The jupyter notebook contains a preliminary analysis of the agent-based model based 
 on some simulations. The notebook contains some graphs that illustrate the trade-off 
 between ability, diversity and randomness. 
