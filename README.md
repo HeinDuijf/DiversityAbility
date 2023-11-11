@@ -1,7 +1,5 @@
 # Diversity and Ability
 
-test VS
-
 This repository is associated with a working paper on the 
 diversity-ability-randomness trade-off in collective problem-solving. The background 
 is [Hong and Page's (2004)](https://doi.org/10.1073/pnas.0403723101) infamous 
