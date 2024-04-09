@@ -82,8 +82,7 @@ class Community:
         ]
         new_sources, new_reliabilities = zip(*new_sources_tuples)
         self.add_sources_from(
-            new_sources=new_sources,
-            new_source_reliabilities=new_reliabilities
+            new_sources=new_sources, new_source_reliabilities=new_reliabilities
         )
         self.add_agents_from(new_agents)
         self.source_network = source_network
@@ -144,9 +143,9 @@ class Community:
         self.source_network.nodes[agent][cfg.agent_competence] = agent_competence
 
     def initialize_diversity(self, edge):
-        self.influence_network.edges[edge][
-            cfg.edge_diversity
-        ] = self.calculate_edge_diversity(edge)
+        self.influence_network.edges[edge][cfg.edge_diversity] = (
+            self.calculate_edge_diversity(edge)
+        )
 
     def calculate_edge_diversity(self, edge):
         agent1 = edge[0]
@@ -171,10 +170,10 @@ class Community:
         threshold = number_of_sources / 2
         powerset = (
             list(bin(number)[2:].zfill(number_of_sources))
-            for number in range(2 ** number_of_sources)
+            for number in range(2**number_of_sources)
         )
         for subset in powerset:
-            if not subset.count("1") < threshold:
+            if subset.count("1") >= threshold:
                 probabilities_list = [
                     self.source_network.nodes[sources[k]][cfg.source_reliability]
                     for k in range(number_of_sources)
@@ -187,7 +186,7 @@ class Community:
                 probability_subset = np.prod(probabilities_list)
                 if subset.count("1") > threshold:
                     competence += probability_subset
-                elif subset.count("1") == 0.5:
+                elif subset.count("1") == threshold:
                     competence += probability_subset / 2
         return competence
 
@@ -234,7 +233,7 @@ class Community:
     def estimated_community_accuracy(
         self, number_of_voting_simulations: int, alpha: float = 0.05
     ):
-        """ Method for estimating the collective accuracy of the community.
+        """Method for estimating the collective accuracy of the community.
         :param number_of_voting_simulations: int
             Number of simulations to estimate the collective accuracy
         :param alpha: float
@@ -352,7 +351,7 @@ class Community:
         agents_affected = [
             agent
             for source in sources_remove
-            for agent in self.source_network.in_edges[source]
+            for agent, source in self.source_network.edges
         ]
         self.sources = [
             source for source in self.sources if source not in sources_remove
