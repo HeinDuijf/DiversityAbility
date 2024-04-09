@@ -44,9 +44,7 @@ def best_team(community: Community, group_size: int) -> Community:
 
 
 def diverse_team(community: Community, group_size: int) -> Community:
-    possible_source_sets = list(
-        combinations(community.sources, community.source_degree)
-    )
+    possible_source_sets = combinations(community.sources, community.source_degree)
     diversity_dict = {source_set: 0 for source_set in possible_source_sets}
     diverse_source_sets = []
     for _ in range(group_size):
