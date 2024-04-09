@@ -1,6 +1,7 @@
 import copy
 
 import networkx as nx
+
 from community import Community
 from utils import config as cfg
 
@@ -220,7 +221,18 @@ def test_add_sources_from():
     initial_sources = community.sources
     community.add_sources_from(["s99", "s33"])
     assert set(community.sources) == {
-        "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7","s8", "s9", "s99", "s33"
+        "s0",
+        "s1",
+        "s2",
+        "s3",
+        "s4",
+        "s5",
+        "s6",
+        "s7",
+        "s8",
+        "s9",
+        "s99",
+        "s33",
     }
     assert all([source in initial_sources for source in community.sources])
     assert all(
@@ -329,3 +341,25 @@ def test_best_group():
             for agent in community_simple_source.optimal_group(1)
         ]
     )
+
+
+def test_problem_difficulty():
+    global community_simple_source
+    com = copy.deepcopy(community_simple_source)
+    margin_of_error = 10 ** (-5)
+    for source in com.sources:
+        com.source_network.nodes[source][cfg.source_reliability] = 0.6
+    difficulty = com.problem_difficulty()
+
+    assert difficulty > 0.648 - margin_of_error
+    assert difficulty < 0.648 + margin_of_error
+
+    com.remove_sources_from(com.sources[0])
+    difficulty = com.problem_difficulty()
+    print(
+        [
+            com.source_network.nodes[source][cfg.source_reliability]
+            for source in com.sources
+        ]
+    )
+    assert difficulty == 0.6
