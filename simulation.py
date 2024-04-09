@@ -29,10 +29,9 @@ class Simulation:
     ):
         self.start_time = time.time()
         time_str = time.strftime("%Y%m%d_%H%M%S")
+        self.folder_communities = folder_communities
         if filename_csv is None:
             self.filename_csv = f"data/simulation_{time_str}.csv"
-        if folder_communities is None:
-            self.folder_communities = f"data/communities_{time_str}"
         self.number_of_communities = number_of_communities
         self.number_of_voting_simulations = number_of_voting_simulations
         self.number_of_agents = number_of_agents
@@ -56,17 +55,19 @@ class Simulation:
 
     def single_run(self, number: int):
         community = self.generate_community()
-        save_community_to_file(
-            filename=f"{self.folder_communities}/communities/{number}",
-            community=community,
-        )
+        if self.folder_communities is not None:
+            save_community_to_file(
+                filename=f"{self.folder_communities}/communities/{number}",
+                community=community,
+            )
         self.simulate_and_write_data_line(community=community, number=number)
         self.report_progress(number)
 
     def initialize_dirs(self):
-        if os.path.exists(f"{self.folder_communities}"):
-            shutil.rmtree(f"{self.folder_communities}")
-        os.makedirs(f"{self.folder_communities}", exist_ok=True)
+        if self.folder_communities is not None:
+            if os.path.exists(f"{self.folder_communities}"):
+                shutil.rmtree(f"{self.folder_communities}")
+            os.makedirs(f"{self.folder_communities}", exist_ok=True)
         if os.path.exists(f"{self.filename_csv}"):
             os.remove(f"{self.filename_csv}")
 
@@ -83,7 +84,8 @@ class Simulation:
             f"source_degree, {self.source_degree}\n"
             f"source_reliability_range, {self.source_reliability_range}\n"
         )
-        filename_readme = f"{self.folder_communities}/README.csv"
+        filename = self.filename_csv.replace(".csv", "")
+        filename_readme = f"{filename}_README.csv"
         with open(filename_readme, "w") as f:
             f.write(information)
 
@@ -172,7 +174,7 @@ def team_simulation(
     number_of_voting_simulations: int = 10,
     alpha: float = 0.05,
 ):
-    """ Method for estimating the team accuracy of a group of agents in a community.
+    """Method for estimating the team accuracy of a group of agents in a community.
     :param community: Community
         Community
     :param group
