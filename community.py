@@ -11,9 +11,9 @@ from utils.basic_functions import calculate_accuracy_and_precision, majority_win
 class Community:
     def __init__(
         self,
-        number_of_agents: int = 100,
-        number_of_sources: int = 100,
-        sources_reliability_range=(0.5, 0.7),
+        number_of_agents: int = 10,
+        number_of_sources: int = 10,
+        sources_reliability_distribution=(0.5, 0.7),
         source_degree: int = 5,
         influence_degree: int = 1,
         edges: list = None,
@@ -22,7 +22,7 @@ class Community:
     ):
         self.number_of_agents: int = number_of_agents
         self.number_of_sources: int = number_of_sources
-        self.sources_reliability_range = sources_reliability_range
+        self.sources_reliability_distribution = sources_reliability_distribution
         assert source_degree <= number_of_sources
         self.source_degree: int = source_degree
         assert influence_degree <= number_of_agents - 1
@@ -65,7 +65,7 @@ class Community:
         self.source_network = source_network
         self.initialize_source_attributes()
 
-    def set_source_network(self, source_network):
+    def set_source_network(self, source_network):  # Todo: remove?
         source_network_agents = [
             agent for agent in source_network.nodes() if isinstance(agent, int)
         ]
@@ -92,13 +92,25 @@ class Community:
             self.initialize_diversity(edge)
 
     def initialize_source_attributes(self):
+        if "unidist" in self.sources_reliability_distribution:
+            reliability_range = self.sources_reliability_distribution[1]
+            reliability_distance = reliability_range[1] - reliability_range[0]
+            step = reliability_distance / (self.number_of_sources - 1)
+            source_reliabilities = reliability_range[0] + step * np.arange(
+                0, self.number_of_sources, dtype=21
+            )
+            for k, source in enumerate(self.sources):
+                self.initialize_source_reliability(source, source_reliabilities[k])
+            return
+
         for source in self.sources:
             self.initialize_source_reliability(source)
 
     def initialize_source_reliability(self, source: str, reliability: float = None):
         if reliability is None:
             reliability = rd.uniform(
-                self.sources_reliability_range[0], self.sources_reliability_range[1]
+                self.sources_reliability_distribution[0],
+                self.sources_reliability_distribution[1],
             )
         self.source_network.nodes[source][cfg.source_reliability] = reliability
 
@@ -190,7 +202,7 @@ class Community:
                     competence += probability_subset / 2
         return competence
 
-    def optimal_group(self, group_size):
+    def optimal_group(self, group_size):  # Todo: remove?
         agent_tuples = [
             [agent, self.influence_network.nodes[agent][cfg.agent_competence]]
             for agent in self.agents
@@ -199,10 +211,10 @@ class Community:
         optimal_group = [agent for [agent, competence] in agent_tuples[:group_size]]
         return optimal_group
 
-    def random_group(self, group_size):
+    def random_group(self, group_size):  # Todo: remove?
         return rd.sample(self.agents, group_size)
 
-    def diverse_group(self, group_size):
+    def diverse_group(self, group_size):  # Todo: remove?
         diverse_group = []
         agents_sources: dict = {
             agent: self.source_network[agent] for agent in self.agents
