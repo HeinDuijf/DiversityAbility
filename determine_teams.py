@@ -66,9 +66,12 @@ def diverse_team(community: Community, group_size: int) -> Community:
     team = copy.deepcopy(community)
     team.remove_agents_from(community.agents)
     team.add_agents_from(diverse_group)
-    for agent in diverse_group:
-        edges = [(agent, source) for source in diverse_source_sets[agent]]
-        team.add_source_edges_from(edges)
+    edges = [
+        (agent, source)
+        for agent in diverse_group
+        for source in diverse_source_sets[agent]
+    ]
+    team.add_source_edges_from(edges)
     return team
 
 
@@ -82,7 +85,10 @@ def random_team(community: Community, group_size: int) -> Community:
     team = copy.deepcopy(community)
     team.remove_agents_from(community.agents)
     team.add_agents_from(random_agents)
-    for agent in random_agents:
-        edges = [(agent, source) for source in random_source_sets[agent]]
-        team.add_source_edges_from(edges)
+    edges = [
+        (agent, source)
+        for agent in random_agents
+        for source in random_source_sets[agent]
+    ]
+    team.add_source_edges_from(edges)
     return team
