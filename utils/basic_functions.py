@@ -6,7 +6,7 @@ import utils.config as cfg
 
 
 def majority_winner(values: list):
-    """ Basic function to determine the majority winner in a binary decision context."""
+    """Basic function to determine the majority winner in a binary decision context."""
     options = sorted(set(values))
     threshold = len(values) / 2
     for option in options:
@@ -15,8 +15,8 @@ def majority_winner(values: list):
     return rd.choice(options)
 
 
-def calculate_accuracy_and_precision(list_of_items, alpha: float = 0.05):
-    """ Basic function to calculate the accuracy and precision of a list of items.
+def calculate_accuracy_and_precision(list_of_items: list, alpha: float = 0.05) -> tuple:
+    """Basic function to calculate the accuracy and precision of a list of items.
     :param list_of_items
     :param alpha
     :returns tuple
@@ -35,7 +35,7 @@ def calculate_accuracy_and_precision(list_of_items, alpha: float = 0.05):
     return result
 
 
-def calculate_diversity(list1, list2):
+def calculate_diversity(list1: list, list2: list) -> float:
     novel_items1 = [item for item in list1 if item not in list2]
     novelty1 = len(novel_items1) / len(list1)
     novel_items2 = [item for item in list2 if item not in list1]
@@ -44,8 +44,8 @@ def calculate_diversity(list1, list2):
     return diversity
 
 
-def convert_math_to_text(string: str):
-    """ Converts math to text.
+def convert_math_to_text(string: str) -> list:
+    """Converts math to text.
     For example, "p_e" is converted to "minority_competence"."""
     words = string.replace("+", " ").split(" ")
     words = [word for word in words if word != ""]
