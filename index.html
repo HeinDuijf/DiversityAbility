@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>NotebookWalkthrough</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>index</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7521,7 +7521,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">run</span> utils/notebook.py
@@ -7577,13 +7577,13 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">community</span> <span class="o">=</span> <span class="n">Community</span><span class="p">(</span>
-    <span class="n">number_of_agents</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
+    <span class="n">number_of_agents</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
     <span class="n">number_of_sources</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
-    <span class="n">sources_reliability_range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">),</span>
+    <span class="n">sources_reliability_distribution</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">),</span>
     <span class="n">source_degree</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
     <span class="n">influence_degree</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
 <span class="p">)</span>
@@ -7598,9 +7598,9 @@ a.anchor-link {
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[2]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>1</pre>
+<pre>-1</pre>
 </div>
 </div>
 </div>
@@ -7610,7 +7610,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">community</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"initial"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/community_initial.html"</span><span class="p">)</span>
@@ -7631,7 +7631,7 @@ a.anchor-link {
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/community_initial.html" width="100%"></iframe>
 </div>
@@ -7657,7 +7657,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">com</span><span class="o">=</span><span class="n">community</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"sources"</span><span class="p">,</span> <span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/community_sources.html"</span><span class="p">)</span>
@@ -7678,7 +7678,7 @@ a.anchor-link {
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/community_sources.html" width="100%"></iframe>
 </div>
@@ -7702,7 +7702,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">com</span><span class="o">=</span><span class="n">community</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"agents"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/community_agents.html"</span><span class="p">)</span>
@@ -7723,7 +7723,7 @@ a.anchor-link {
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[5]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/community_agents.html" width="100%"></iframe>
 </div>
@@ -7746,7 +7746,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">correct_opinions</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
@@ -7766,7 +7766,7 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Correct: 17 | Incorrect: 4
+<pre>Correct: 1 | Incorrect: 6
 </pre>
 </div>
 </div>
@@ -7814,7 +7814,7 @@ Input 3: A number of sources that each agent accesses.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">best_team</span><span class="p">(</span><span class="n">community</span><span class="p">,</span> <span class="n">group_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
@@ -7836,7 +7836,7 @@ Input 3: A number of sources that each agent accesses.
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[7]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/best_team.html" width="100%"></iframe>
 </div>
@@ -7859,7 +7859,7 @@ Input 3: A number of sources that each agent accesses.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">diverse_team</span><span class="p">(</span><span class="n">community</span><span class="p">,</span> <span class="n">group_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
@@ -7881,7 +7881,7 @@ Input 3: A number of sources that each agent accesses.
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/diverse_team.html" width="100%"></iframe>
 </div>
@@ -7904,7 +7904,7 @@ Input 3: A number of sources that each agent accesses.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">random_team</span><span class="p">(</span><span class="n">community</span><span class="p">,</span> <span class="n">group_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
@@ -7926,7 +7926,7 @@ Input 3: A number of sources that each agent accesses.
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[11]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/random_team.html" width="100%"></iframe>
 </div>
