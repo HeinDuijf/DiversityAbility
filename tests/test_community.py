@@ -16,20 +16,24 @@ community_blank = Community(**params_blank)
 community_example: Community = copy.deepcopy(community_blank)
 community_from_edges: Community = copy.deepcopy(community_blank)
 community_simple_source = copy.deepcopy(community_blank)
+community_unidist = copy.deepcopy(community_blank)
 
 params_blank["create"] = True
 params_example: dict = copy.deepcopy(params_blank)
 params_from_edges: dict = copy.deepcopy(params_blank)
 params_simple_source: dict = copy.deepcopy(params_blank)
+params_unidist: dict = copy.deepcopy(params_blank)
 
 
 def setup_module():
     global community_example
     global community_from_edges
     global community_simple_source
+    global community_unidist
     global params_example
     global params_from_edges
     global params_simple_source
+    global params_unidist
 
     params_example["number_of_agents"] = 100
     params_example["influence_degree"] = 6
@@ -47,8 +51,14 @@ def setup_module():
     params_simple_source["number_of_sources"] = 3
     params_simple_source["source_degree"] = 3
     params_simple_source["influence_degree"] = 1
+    params_simple_source["sources_reliability_distribution"] = (0.4, 0.8)
 
     community_simple_source = Community(**params_simple_source)
+
+    params_unidist = copy.copy(params_simple_source)
+    params_unidist["sources_reliability_distribution"] = ("unidist", (0.4, 0.6))
+
+    community_unidist = Community(**params_unidist)
 
 
 def check_number_of_agents(community: Community, params: dict):
@@ -278,6 +288,45 @@ def test_initialize_attributes():
         0 <= community_example.influence_network.edges[edge][cfg.edge_diversity] <= 1
         for edge in community_example.influence_network.edges
     )
+
+
+def test_initialize_source_attributes():
+    global community_simple_source
+    global params_simple_source
+    global community_unidist
+    global params_unidist
+
+    community_simple_source.initialize_source_attributes()
+    reliability_min = params_simple_source["sources_reliability_distribution"][0]
+    reliability_max = params_simple_source["sources_reliability_distribution"][1]
+    assert all(
+        [
+            reliability_min
+            <= community_simple_source.source_network.nodes[source][
+                cfg.source_reliability
+            ]
+            <= reliability_max
+            for source in community_simple_source.sources
+        ]
+    )
+
+    community_unidist.initialize_source_attributes()
+    reliability_min = params_unidist["sources_reliability_distribution"][1][0]
+    reliability_max = params_unidist["sources_reliability_distribution"][1][1]
+    assert all(
+        [
+            reliability_min
+            <= community_unidist.source_network.nodes[source][cfg.source_reliability]
+            <= reliability_max
+            for source in community_unidist.sources
+        ]
+    )
+    assert set(
+        [
+            community_unidist.source_network.nodes[source][cfg.source_reliability]
+            for source in community_unidist.sources
+        ]
+    ) == {0.4, 0.5, 0.6}
 
 
 def test_update_votes():

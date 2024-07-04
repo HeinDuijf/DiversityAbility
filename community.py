@@ -97,7 +97,7 @@ class Community:
             reliability_distance = reliability_range[1] - reliability_range[0]
             step = reliability_distance / (self.number_of_sources - 1)
             source_reliabilities = reliability_range[0] + step * np.arange(
-                0, self.number_of_sources, dtype=21
+                0, self.number_of_sources, dtype=int
             )
             for k, source in enumerate(self.sources):
                 self.initialize_source_reliability(source, source_reliabilities[k])
