@@ -25,7 +25,7 @@ class Simulation:
         team_types=("best", "most_diverse", "random"),
         number_of_sources=10,
         source_degree=5,
-        source_reliability_range=(0.5, 0.7),
+        sources_reliability_distribution=(0.5, 0.7),
     ):
         self.start_time = time.time()
         time_str = time.strftime("%Y%m%d_%H%M%S")
@@ -41,7 +41,7 @@ class Simulation:
         self.team_types = team_types
         self.number_of_sources = number_of_sources
         self.source_degree = source_degree
-        self.source_reliability_range = source_reliability_range
+        self.sources_reliability_distribution = sources_reliability_distribution
 
     def run(self):
         print(f"Started simulation at {time.ctime()}")
@@ -82,7 +82,7 @@ class Simulation:
             f"group_size, {self.group_size}\n"
             f"number_of_sources, {self.number_of_sources}\n"
             f"source_degree, {self.source_degree}\n"
-            f"source_reliability_range, {self.source_reliability_range}\n"
+            f"sources_reliability_distribution, {self.sources_reliability_distribution}\n"
         )
         filename = self.filename_csv.replace(".csv", "")
         filename_readme = f"{filename}_README.csv"
@@ -96,7 +96,7 @@ class Simulation:
             number_of_sources=self.number_of_sources,
             influence_degree=self.influence_degree,
             source_degree=self.source_degree,
-            sources_reliability_range=self.source_reliability_range,
+            sources_reliability_distribution=self.sources_reliability_distribution,
             edges=[],
         )
         return community
@@ -107,7 +107,7 @@ class Simulation:
             + "group_size,"
             + "number_of_sources,"
             + "source_degree,"
-            + "source_reliability_range,"
+            + "sources_reliability_distribution,"
             + "number_of_voting_simulations,"
             + "number_of_agents,"
             + "difficulty"
@@ -121,12 +121,12 @@ class Simulation:
             f.write(head_line)
 
     def simulate_and_write_data_line(self, community: Community, number: int):
-        source_reliability_range_str = str(self.source_reliability_range).replace(
-            ",", " to"
-        )
+        sources_reliability_distribution_str = str(
+            self.sources_reliability_distribution
+        ).replace(",", " to")
         data_line = (
             f"{number},{self.group_size},{self.number_of_sources},{self.source_degree},"
-            f"{source_reliability_range_str},{self.number_of_voting_simulations},"
+            f"{sources_reliability_distribution_str},{self.number_of_voting_simulations},"
             f"{self.number_of_agents},{community.problem_difficulty()}"
         )
 
