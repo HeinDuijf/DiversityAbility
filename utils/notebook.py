@@ -3,16 +3,16 @@ import glob
 import os
 import random as rd
 
+import config as cfg
 import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
 import pyvis
 import seaborn as sns
-from community import Community
-from determine_teams import best_team, diverse_team, random_team
 from pyvis.network import Network
 
-import config as cfg
+from community import Community
+from determine_teams import best_team, diverse_team, random_team
 
 correct_color = "forestgreen"
 incorrect_color = "firebrick"
@@ -25,8 +25,8 @@ def visualize(
     sorting: str = "degree",
     sizing: str = "reliability",
     coloring: str = "initial",
-    edge_type="vertical",
-):
+    edge_type: str = "vertical",
+) -> Network:
     net = Network(
         height="200px",
         width="100%",
@@ -68,7 +68,7 @@ def visualize(
     return net
 
 
-def sort_sources(com: Community, sorting: str = "degree"):
+def sort_sources(com: Community, sorting: str = "degree") -> list:
     sources_tuples = [(0, 0)]
     if sorting == "degree":
         sources_tuples = [
@@ -94,7 +94,7 @@ def sort_sources(com: Community, sorting: str = "degree"):
     return sources_ordered
 
 
-def color_sources(com: Community, coloring):
+def color_sources(com: Community, coloring: str) -> dict:
     sources_coloring = {source: source_initial_color for source in com.sources}
 
     for source in com.sources:
@@ -109,7 +109,7 @@ def color_sources(com: Community, coloring):
     return sources_coloring
 
 
-def size_sources(com: Community, sizing):
+def size_sources(com: Community, sizing: str) -> dict:
     source_sizing = {source: 1 for source in com.sources}
     if sizing == "degree":
         source_sizing = {
@@ -129,7 +129,7 @@ def size_sources(com: Community, sizing):
     return source_sizing
 
 
-def color_agents(com: Community, coloring):
+def color_agents(com: Community, coloring: str) -> dict:
     agents_coloring = {agent: agent_initial_color for agent in com.agents}
     for agent in com.agents:
         if coloring == "agents":
