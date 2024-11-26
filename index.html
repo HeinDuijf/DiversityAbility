@@ -7486,20 +7486,14 @@ a.anchor-link {
 <ol>
 <li><strong>Sources.</strong> Each ABM consists of a set of sources. Each source has a certain reliability (typically, $\geq 0.5$), which represents the probability that it produces evidence that supports the correct alternative.</li>
 <li><strong>Agents.</strong> Each agent in the ABM is connected to a number of sources, which determine the agent's decisions. The basic idea is that agents follow the majority of the evidences available to them.</li>
-<li><strong>Teams.</strong> A team is a set of agents. The team decision-making follows the majority rule, so that the team picks the alternative that most team members think is best.</li>
+<li><strong>Teams.</strong> A team is a set of agents. The team decision-making follows the majority rule, i.e., the team picks the alternative that most team members think is best.</li>
 </ol>
-<p>In particular, an instantiation of the agent-based model, called <code>Community</code>, consists of the following building blocks:</p>
+<p>In particular, an instantiation of the agent-based model, called <code>Team</code>, consists of the following building blocks:</p>
 <ul>
 <li>A set of sources $S$,</li>
-<li>For each source $s \in S$:<ul>
-<li>Its reliability $p_s$</li>
-</ul>
-</li>
+<li>For each source $s \in S$, its reliability $p_s$</li>
 <li>A set of agents $N$,</li>
-<li>For each agent $i \in N$:<ul>
-<li>A set of sources $S_i \subseteq S$ that she has access to.</li>
-</ul>
-</li>
+<li>For each agent $i \in N$, a set of sources $S_i \subseteq S$ that she has access to.</li>
 </ul>
 <p>In future work, I plan to also include more complicated versions of group decision-making (other than majority rule) by including influence networks.</p>
 </div>
@@ -7521,7 +7515,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [59]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">run</span> utils/notebook.py
@@ -7537,16 +7531,16 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-A-simple-example">1. A simple example<a class="anchor-link" href="#1.-A-simple-example">¶</a></h2><h3 id="1.0-Initial-stage">1.0 Initial stage<a class="anchor-link" href="#1.0-Initial-stage">¶</a></h3><p>Let us start with considering a simple example of a community with only 20 agents. More explicitly, we set the parameters as follows:</p>
+<h2 id="1.-A-simple-example">1. A simple example<a class="anchor-link" href="#1.-A-simple-example">¶</a></h2><h3 id="1.0-Initial-stage">1.0 Initial stage<a class="anchor-link" href="#1.0-Initial-stage">¶</a></h3><p>Let us start with considering a simple example of a team of 9 agents. More explicitly, we set the parameters as follows:</p>
 <ul>
 <li>A set of 21 sources $S=\{s_1, \ldots, s_{21}\}$,</li>
-<li>A set of 21 agents $N=\{0, \ldots, 20\}$,</li>
+<li>A set of 9 agents $N=\{0, \ldots, 8\}$,</li>
 <li>For each agent $i \in N$:<ul>
 <li>Her sources $S_i \subseteq S$ (where $|S_i|=5$).</li>
 </ul>
 </li>
 </ul>
-<p>The simple community is depicted in the picture below. Let me explain the picture:</p>
+<p>The simple team is depicted in the picture below. Let me explain the picture:</p>
 <ul>
 <li>Nodes:<ul>
 <li>The initial color of the nodes represents whether they are <font color="teal">sources</font> or <font color="darkorange">agents</font>.</li>
@@ -7562,7 +7556,7 @@ a.anchor-link {
 </ul>
 </li>
 <li>Edges:<ul>
-<li>The <em>edges</em> represent the agents' <strong>sources</strong>: these are the set of target sources of all outgoing edges. Accordingly, every agent has out-degree 5.</li>
+<li>The <em>edges</em> represent the agents' <strong>sources</strong>: these are the set of targets of the outgoing edges. Accordingly, every agent has out-degree 5.</li>
 <li>Hence, sources with higher in-degrees have more influence on the team decision-making.</li>
 <li>The color of an edge represents the color of the associated source.</li>
 </ul>
@@ -7572,35 +7566,25 @@ a.anchor-link {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=18dc9931">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=18dc9931">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [60]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">community</span> <span class="o">=</span> <span class="n">Community</span><span class="p">(</span>
-    <span class="n">number_of_agents</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
-    <span class="n">number_of_sources</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
-    <span class="n">sources_reliability_distribution</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">),</span>
-    <span class="n">source_degree</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-    <span class="n">influence_degree</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">sources</span> <span class="o">=</span> <span class="n">Sources</span><span class="p">(</span>
+    <span class="n">n_sources</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span> 
+    <span class="n">reliability_distribution</span><span class="o">=</span><span class="p">(</span><span class="s2">"unidist"</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)),</span>
 <span class="p">)</span>
-<span class="n">community</span><span class="o">.</span><span class="n">vote</span><span class="p">()</span>
+<span class="n">team</span> <span class="o">=</span> <span class="n">random_team</span><span class="p">(</span>
+    <span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span>
+    <span class="n">heuristic_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">team_size</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">team</span><span class="o">.</span><span class="n">update_opinions</span><span class="p">()</span>
 </pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>-1</pre>
 </div>
 </div>
 </div>
@@ -7610,10 +7594,10 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [61]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">community</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"initial"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/community_initial.html"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"initial"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/team_initial.html"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7626,14 +7610,14 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>www/community_initial.html
+<pre>www/team_initial.html
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[61]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
-<iframe allowfullscreen="" frameborder="0" height="200px" src="www/community_initial.html" width="100%"></iframe>
+<iframe allowfullscreen="" frameborder="0" height="200px" src="www/team_initial.html" width="100%"></iframe>
 </div>
 </div>
 </div>
@@ -7648,7 +7632,7 @@ a.anchor-link {
 <h3 id="1.1-Source-valences">1.1 Source valences<a class="anchor-link" href="#1.1-Source-valences">¶</a></h3><p>In the first stage, the valence of each source $s\in S$ is probabilistically determined by its reliability $p_s$. The color of the <em>sources</em> represents whether their piece of <strong>evidence</strong> has the <font color="forestgreen"><strong>correct</strong></font> or <font color="firebrick"><strong>incorrect</strong></font> valence, i.e., supports <font color="forestgreen"><strong>correct</strong></font> or <font color="firebrick"><strong>incorrect</strong></font> alternative.</p>
 <p>In the second stage, each agent $i$ forms their opinion based on the evidences from their sources $S_i$. The color of the <em>agents</em> represents whether their <strong>opinion</strong> supports the <font color="forestgreen"><strong>correct</strong></font> or <font color="firebrick"><strong>incorrect</strong></font> alternative.</p>
 <p>In the third stage, the team forms their collective decision by following the majority rule.</p>
-<p>Let's see how this goes in the artificial community. Did any source have the wrong valence? Can you figure out why? Can you predict some of the agent's opinions?</p>
+<p>Let's see how this goes in the artificial team. Did any source have the wrong valence? Can you figure out why? Can you predict some of the agent's opinions?</p>
 </div>
 </div>
 </div>
@@ -7657,10 +7641,10 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [62]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">com</span><span class="o">=</span><span class="n">community</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"sources"</span><span class="p">,</span> <span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/community_sources.html"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="o">=</span><span class="n">team</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"sources"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/team_sources.html"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7673,14 +7657,14 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>www/community_sources.html
+<pre>www/team_sources.html
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[62]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
-<iframe allowfullscreen="" frameborder="0" height="200px" src="www/community_sources.html" width="100%"></iframe>
+<iframe allowfullscreen="" frameborder="0" height="200px" src="www/team_sources.html" width="100%"></iframe>
 </div>
 </div>
 </div>
@@ -7692,8 +7676,8 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="1.2-Agent-opinions">1.2 Agent opinions<a class="anchor-link" href="#1.2-Agent-opinions">¶</a></h3><p>Let us consider the opinions of the agents in this artificial community. As mentioned before, the color of the <em>agents</em> represents whether their <strong>opinion</strong> favours the <font color="forestgreen"><strong>correct</strong></font> or <font color="firebrick"><strong>incorrect</strong></font> alternative.</p>
-<p>Let's see how this goes in the simple community. Did anyone form the wrong opinion? Can you figure out why?</p>
+<h3 id="1.2-Agent-opinions">1.2 Agent opinions<a class="anchor-link" href="#1.2-Agent-opinions">¶</a></h3><p>Let us consider the opinions of the agents in this artificial team. As mentioned before, the color of the <em>agents</em> represents whether their <strong>opinion</strong> favours the <font color="forestgreen"><strong>correct</strong></font> or <font color="firebrick"><strong>incorrect</strong></font> alternative.</p>
+<p>Let's see how this goes in the simple team. Did anyone form the wrong opinion? Can you figure out why?</p>
 </div>
 </div>
 </div>
@@ -7702,10 +7686,10 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [63]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">com</span><span class="o">=</span><span class="n">community</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"agents"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/community_agents.html"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="o">=</span><span class="n">team</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"agents"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/team_agents.html"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7718,14 +7702,14 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>www/community_agents.html
+<pre>www/team_agents.html
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[63]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
-<iframe allowfullscreen="" frameborder="0" height="200px" src="www/community_agents.html" width="100%"></iframe>
+<iframe allowfullscreen="" frameborder="0" height="200px" src="www/team_agents.html" width="100%"></iframe>
 </div>
 </div>
 </div>
@@ -7746,13 +7730,13 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [64]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">correct_opinions</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
-    <span class="p">[</span><span class="mi">1</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">community</span><span class="o">.</span><span class="n">agents</span> <span class="k">if</span> <span class="n">community</span><span class="o">.</span><span class="n">influence_network</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">agent</span><span class="p">][</span><span class="n">cfg</span><span class="o">.</span><span class="n">agent_opinion</span><span class="p">]</span> <span class="o">==</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vote_for_positive</span><span class="p">]</span>
+    <span class="p">[</span><span class="mi">1</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">members</span> <span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">opinion</span> <span class="o">==</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vote_for_positive</span><span class="p">]</span>
 <span class="p">)</span>
-<span class="n">incorrect_opinions</span> <span class="o">=</span> <span class="n">community</span><span class="o">.</span><span class="n">number_of_agents</span> <span class="o">-</span> <span class="n">correct_opinions</span>
+<span class="n">incorrect_opinions</span> <span class="o">=</span> <span class="n">team</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">correct_opinions</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Correct: </span><span class="si">{</span><span class="n">correct_opinions</span><span class="si">}</span><span class="s2"> | Incorrect: </span><span class="si">{</span><span class="n">incorrect_opinions</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -7766,7 +7750,7 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Correct: 1 | Incorrect: 6
+<pre>Correct: 7 | Incorrect: 2
 </pre>
 </div>
 </div>
@@ -7786,14 +7770,14 @@ a.anchor-link {
 <li>Teams consisting of a randomly selected agents.</li>
 </ol>
 <p>As mentioned earlier, each agent is associated with a set of sources. We assume that all agents access the same number of sources, typically 5.</p>
-<p>Instead of investigating a particular community, these teams are constructed for a given set of sources and their reliabilities.  More precisely, the task for constructing the team of best-performing agents is as follows:</p>
-<pre><code class="language-commandline">commandline
-Input 1: A set of sources and their reliabilities.
-Input 2: A group size.
-Input 3: A number of sources that each agent accesses.
----
-&gt; Output: The team of the required size consisting of the best-performing agents out of all possible agents.
-</code></pre>
+<p>Instead of investigating a particular team, these teams are constructed for a given set of sources and their reliabilities.  More precisely, the task for constructing the team of best-performing agents is as follows:</p>
+<blockquote>
+<p>Input 1: A set of sources and their reliabilities.</p>
+<p>Input 2: A group size.</p>
+<p>Input 3: A number of sources that each agent accesses.</p>
+<hr/>
+<p>Output: The team of the required size consisting of the best-performing agents out of all possible agents.</p>
+</blockquote>
 <p>Once a team has been constructed, the team decision-making works as illustrated in Section 1.</p>
 </div>
 </div>
@@ -7814,11 +7798,11 @@ Input 3: A number of sources that each agent accesses.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [65]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">best_team</span><span class="p">(</span><span class="n">community</span><span class="p">,</span> <span class="n">group_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
-<span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/best_team.html"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">expert_team</span><span class="p">(</span><span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">heuristic_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">team_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/expert_team.html"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7831,14 +7815,14 @@ Input 3: A number of sources that each agent accesses.
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>www/best_team.html
+<pre>www/expert_team.html
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[65]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
-<iframe allowfullscreen="" frameborder="0" height="200px" src="www/best_team.html" width="100%"></iframe>
+<iframe allowfullscreen="" frameborder="0" height="200px" src="www/expert_team.html" width="100%"></iframe>
 </div>
 </div>
 </div>
@@ -7859,10 +7843,10 @@ Input 3: A number of sources that each agent accesses.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [66]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">diverse_team</span><span class="p">(</span><span class="n">community</span><span class="p">,</span> <span class="n">group_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">diverse_team</span><span class="p">(</span><span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">heuristic_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">team_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
 <span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/diverse_team.html"</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -7881,7 +7865,7 @@ Input 3: A number of sources that each agent accesses.
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[66]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/diverse_team.html" width="100%"></iframe>
 </div>
@@ -7904,10 +7888,10 @@ Input 3: A number of sources that each agent accesses.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [67]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">random_team</span><span class="p">(</span><span class="n">community</span><span class="p">,</span> <span class="n">group_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">random_team</span><span class="p">(</span><span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">heuristic_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">team_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
 <span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/random_team.html"</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -7926,7 +7910,7 @@ Input 3: A number of sources that each agent accesses.
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[67]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/random_team.html" width="100%"></iframe>
 </div>

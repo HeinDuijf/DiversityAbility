@@ -9,4 +9,4 @@ pytest
 pyvis
 statistics
 notebook
-itertools
+tqdm

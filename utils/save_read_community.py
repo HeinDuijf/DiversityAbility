@@ -1,7 +1,7 @@
 import os
 import pickle
 
-from community import Community
+from archive.community import Community
 
 
 def community_compress(community: Community):
@@ -18,10 +18,10 @@ def community_compress(community: Community):
         else:
             source_edges_dict[f"S{agent}"] = f"{source_edges_dict[agent]},{source}"
     community_dict = {
-        "N": community.number_of_agents,
+        "N": community.n_agents,
         # "E": community.number_of_elites,
         "d": community.influence_degree,
-        "NS": community.number_of_sources,
+        "NS": community.n_sources,
         "ds": community.source_degree,
         **edges_dict,
         **source_edges_dict,
@@ -51,9 +51,9 @@ def community_unpack(community_compressed: dict):
         if str(source) in community_compressed[f"S{agent}"].split(",")
     ]
     community_dict = {
-        "number_of_agents": community_compressed["N"],
+        "n_agents": community_compressed["N"],
         "influence_degree": community_compressed["d"],
-        "number_of_sources": community_compressed["NS"],
+        "n_sources": community_compressed["NS"],
         "source_degree": community_compressed["ds"],
         "edges": edges,
         "source_edges": source_edges,
