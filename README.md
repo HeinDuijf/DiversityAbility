@@ -58,34 +58,31 @@ jupyter-notebook DataAnalysis.ipynb
 
 ### Illustration of the agent-based model: `NotebookWalkthrough.ipynb`
 The Jupyter Notebook walks you through the stages of the agent-based model 
-`Community` using some network visualizations. To minimalize the amount of code in the 
+`Team` using some network visualizations. To minimalize the amount of code in the 
 notebook, some scripts are stored in `utils/notebook.py`, which is run in one of the 
 initial notebook cells. 
 
-### The agent-based model: `community.py`
-The central class `Community` is defined in `community.py`. A `Community` is an 
-*agent-based model* consisting of a network of sources and agents. The central method `estimated_community_accuracy` computes the estimated accuracy of the group of agents. 
+### The agent-based model: `models/team.py`
+The central class `Team` is defined in `models/team.py`. A `Team` is an 
+*agent-based model* consisting of sources and agents. The central method `accuracy` computes the accuracy of the team. 
 
 ### Determine the three types of teams: `determine_teams.py`
-The central methods for determining the three types of teams can be found in `determine_teams.py`: `best_team`, `diverse_team`, and `random_team`.
+The central methods for determining the three types of teams can be found in `models/determine_teams.py`: `expert_team`, `diverse_team`, and `random_team`.
 
 ### Data analysis (preliminary): `DataAnalysis.ipynb`
 The Jupyter Notebook contains a preliminary analysis of results. The notebook contains some statistical analyses and some graphs illustrating the trade-off between ability, diversity and randomness. 
 
-### Simulations: `simulation.py`
-The central class `Simulation` and method `Simulation.run()` is defined in 
-`simulation.py`, the method produces the csv files in the folder `data`. The 
-method `Simulation.run()` runs a simulation consisting of generating 
-`number_of_communities` communities and creating the three types of teams for each 
-community and estimating the accuracy of each team by running 
-`number_of_voting_simulations` voting simulations.
+### Simulations: `simulation.py` and `grid_simulation.py`
+The class `Simulation` and method `Simulation.run()` is defined in `simulation.py`, the method produces a csv file (typically, in the folder `data`). The method `Simulation.run()` runs a simulation for a particular parameter setting and produces results that can give insight into whether diversity trumps ability for that parameter setting. 
+
+The class `GridSimulation` and method `GridSimulation.run()` is defined in `grid_simulation.py`. The method runs simulations (by invoking the method `Simulation.run()`) for each parameter setting in a grid. 
 
 ## 5. Computational limitations
 * This repository is not optimized for computational speed, but for findability, accessibility, interoperability, and reusability ([FAIR](https://www.uu.nl/en/research/research-data-management/guides/how-to-make-your-data-fair)).
-* Determining the team consisting of random agents and best-performing agents is fast, but determining the team of diverse agents is slow (see `determine_teams.py`). The computational cost of computing the most diverse team goes up if the number of sources increases. Hence, the reason why I have only considered at most 21 sources. 
+* Determining the accuracy of teams can be computationally demanding. The computational cost of computing the accuracy of a team goes up if the number of sources increases. Hence, the reason why I have only considered at most 21 sources. 
 
 ## 6. Licence and citation
 This repository accompanies an academic paper (in progress). In the meantime, please cite as follows:
-- TBD
+- Duijf, H. (2024). Diversity and ability in a source reliability model. _GitHub_. https://github.com/HeinDuijf/DiversityAbility 
 
 Released under the [MIT licence](LICENCE.md).
