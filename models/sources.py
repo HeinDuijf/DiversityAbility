@@ -11,21 +11,21 @@ class Sources:
         self.n_sources = n_sources
         self.sources = np.arange(n_sources, dtype=int)
         self.reliability_distribution = reliability_distribution
-        self.initialize_reliabilities()
         self.reliabilities = self.initialize_reliabilities()
-        self.valences = self.update_valences()
+        self.valences = []
+        self.update_valences()
 
-    def initialize_reliabilities(self):
+    def initialize_reliabilities(self) -> np.array:
         if "unidist" in self.reliability_distribution[0]:
             reliability_range = self.reliability_distribution[1]
             reliability_distance = reliability_range[1] - reliability_range[0]
             step = reliability_distance / (self.n_sources - 1)
-            source_reliabilities = reliability_range[0] + step * np.arange(
+            reliabilities = reliability_range[0] + step * np.arange(
                 0, self.n_sources, dtype=int
             )
-            return source_reliabilities
+            return reliabilities
 
-    def update_valences(self):
+    def update_valences(self) -> None:
         random_list = np.random.rand(self.n_sources)
         valences = random_list < self.reliabilities
 
@@ -35,13 +35,16 @@ class Sources:
             else:
                 return cfg.vote_for_negative
 
-        return np.array([translation(valences[k]) for k in range(len(valences))])
+        self.valences = np.array(
+            [translation(valences[k]) for k in range(len(valences))]
+        )
 
-    def set_valence(self, source, valence):
+    def set_valence(self, source, valence) -> None:
         self.valences[source] = valence
 
     def all_heuristics(self, heuristic_size: int):
+        """Returns iterable"""
         return combinations(self.sources, heuristic_size)
 
-    def problem_difficulty(self):
+    def problem_difficulty(self) -> float:
         return calculate_competence(self.reliabilities)

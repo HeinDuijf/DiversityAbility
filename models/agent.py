@@ -8,14 +8,14 @@ class Agent:
         self.heuristic = heuristic
         self.sources = sources
         self.score = self.competence()
-        self.opinion = self.update_opinion()
+        self.update_opinion()
 
-    def update_opinion(self):
+    def update_opinion(self) -> None:
         self.opinion = majority_winner(
             [self.sources.valences[source] for source in self.heuristic]
         )
 
-    def competence(self):
+    def competence(self) -> float:
         return calculate_competence(
             [self.sources.reliabilities[source] for source in self.heuristic]
         )
