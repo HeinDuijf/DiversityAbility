@@ -1,7 +1,7 @@
 import copy
 import itertools as it
 import time
-from multiprocessing import Pool
+from concurrent.futures import ProcessPoolExecutor as Pool
 
 import pandas as pd
 import tqdm
@@ -20,6 +20,7 @@ class Simulation:
         heuristic_size: int = 5,
         team_size: int = 9,
         n_samples: int = 10**3,
+        estimate_sample_size: int = None,
     ):
         time_str = time.strftime("%Y%m%d_%H%M%S")
         self.filename_csv = filename_csv
@@ -35,15 +36,13 @@ class Simulation:
         self.heuristic_size = heuristic_size
         self.team_size = team_size
         self.n_samples = n_samples
+        self.estimate_sample_size = estimate_sample_size
 
     def run(self):
         with Pool() as pool:
-            for a in self.params():
-                print(a)
-
             results_df = pd.DataFrame(
                 tqdm.tqdm(
-                    pool.imap(self.team_simulate, self.params()),
+                    pool.map(self.team_simulate, self.params()),
                     total=self.n_samples + 1,
                 ),
             )
@@ -63,14 +62,21 @@ class Simulation:
         }
         if team_type == "expert":
             team = expert_team(**team_params)
+            accuracy, precision = team.accuracy()
         elif team_type == "diverse":
             team = diverse_team(**team_params)
+            accuracy, precision = team.accuracy(
+                estimate_sample_size=self.estimate_sample_size
+            )
         elif team_type == "random":
             team = random_team(**team_params)
+            accuracy, precision = team.accuracy(
+                estimate_sample_size=self.estimate_sample_size
+            )
 
         reliability_mean = (
             self.reliability_distribution[1][1] - self.reliability_distribution[1][0]
-        ) / 2
+        ) / 2 + self.reliability_distribution[1][0]
         # sources_reliability_distribution_str = str(
         #     self.sources_reliability_distribution
         # ).replace(",", " to")
@@ -84,7 +90,8 @@ class Simulation:
             "n_samples": self.n_samples,
             # "problem_difficulty": team.problem_difficulty(),
             "team_type": team_type,
-            "accuracy": team.accuracy(),
+            "accuracy": accuracy,
+            "precision": precision,
             "diversity": team.diversity(),
             "average": team.average(),
         }
@@ -92,4 +99,4 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    Simulation(n_sources=17, n_samples=10).run()
+    Simulation(n_sources=11, n_samples=10, estimate_sample_size=5).run()

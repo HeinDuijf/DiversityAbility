@@ -2,7 +2,12 @@ import numpy as np
 
 import utils.config as cfg
 from models.sources import Sources
-from utils.basic_functions import calculate_diversity, majority_winner, powerset
+from utils.basic_functions import (
+    calculate_accuracy_precision_proportion,
+    calculate_diversity,
+    majority_winner,
+    powerset,
+)
 
 
 class Team:
@@ -18,11 +23,25 @@ class Team:
         for agent in self.members:
             agent.update_opinion()
 
-    def accuracy(self) -> float:
-        accuracy = 0
+    def accuracy(self, estimate_sample_size: int = None) -> tuple:
+        # 1. Estimate by sampling if estimate_sample_size is integer
+        if isinstance(estimate_sample_size, int):
+            outcomes = np.array([], dtype=float)
+            for _ in range(estimate_sample_size):
+                self.sources.update_valences()
+                self.update_opinions()
+                result = self.aggregate()
+                outcomes = np.append(outcomes, result)
+            estimated_accuracy, precision = calculate_accuracy_precision_proportion(
+                outcomes
+            )
+            return estimated_accuracy, precision
+
+        # 2. Else calculate
         heuristics = np.array([agent.heuristic for agent in self.members])
         sources_relevant = np.unique(heuristics.flatten())
 
+        accuracy = 0
         for sources_positive in powerset(sources_relevant):
             for source in self.sources.sources:
                 if source in sources_positive:
@@ -42,7 +61,7 @@ class Team:
                 ]
                 probability_subset = np.prod(probabilities_list)
                 accuracy += probability_subset
-        return accuracy
+        return accuracy, None
 
     def average(self) -> float:
         return np.mean([agent.competence() for agent in self.members])

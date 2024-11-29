@@ -41,13 +41,12 @@ def calculate_accuracy_precision_proportion(
         number_of_success = list_of_items.count(cfg.vote_for_positive)
     if isinstance(list_of_items, np.ndarray):
         number_of_success = np.count_nonzero(list_of_items == cfg.vote_for_positive)
-    proportion = number_of_success / number_of_items
     accuracy = number_of_success / number_of_items
     confidence_interval = proportion_confint(
         number_of_success, number_of_items, alpha=alpha
     )
     precision = max(confidence_interval) - min(confidence_interval)
-    return accuracy, precision, proportion
+    return accuracy, precision
 
 
 def calculate_diversity(list1: list, list2: list) -> float:
@@ -82,20 +81,3 @@ def calculate_competence(reliabilities: list) -> float:
             elif len(sources_positive) == threshold:
                 competence += probability_subset / 2
     return competence
-
-
-def convert_math_to_text(string: str) -> list:
-    """Converts math to text.
-    For example, "p_e" is converted to "minority_competence"."""
-    words = string.replace("+", " ").split(" ")
-    words = [word for word in words if word != ""]
-    convert: dict = {
-        "p_e": "minority_competence",
-        "p_m": "majority_competence",
-        "E": "number_of_minority",
-        "I_e": "influence_minority_proportion",
-        "h": "homophily",
-    }
-    if len(words) == 1:
-        return convert[words[0]]
-    return [convert[word] for word in words]
