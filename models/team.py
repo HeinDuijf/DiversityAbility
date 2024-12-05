@@ -1,9 +1,12 @@
 import numpy as np
 
 import utils.config as cfg
+from models.agent import Agent
 from models.sources import Sources
 from utils.basic_functions import (
     calculate_accuracy_precision_proportion,
+    calculate_competence,
+    calculate_competence_with_duplicates,
     calculate_diversity,
     majority_winner,
     powerset,
@@ -22,6 +25,21 @@ class Team:
     def update_opinions(self) -> None:
         for agent in self.members:
             agent.update_opinion()
+
+    def pool_accuracy(self):
+        sources_accessed = np.unique(
+            np.array([agent.heuristic for agent in self.members]).flatten()
+        )
+        reliabilities = self.sources.reliabilities[sources_accessed]
+        return calculate_competence(reliabilities)
+
+    def bounded_pool_accuracy(self):
+        sources_accessed = np.array(
+            [agent.heuristic for agent in self.members]
+        ).flatten()
+        sources_accessed, weights = np.unique(sources_accessed, return_counts=True)
+        reliabilities = self.sources.reliabilities[sources_accessed]
+        return calculate_competence_with_duplicates(reliabilities, weights)
 
     def accuracy(self, estimate_sample_size: int = None) -> tuple:
         # 1. Estimate by sampling if estimate_sample_size is integer

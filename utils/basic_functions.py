@@ -81,3 +81,37 @@ def calculate_competence(reliabilities: list) -> float:
             elif len(sources_positive) == threshold:
                 competence += probability_subset / 2
     return competence
+
+
+def calculate_competence_with_duplicates(
+    reliabilities: list, weights: list = None
+) -> float:
+    competence: float = 0
+    n_sources = len(reliabilities)
+    sources = range(len(reliabilities))
+    if n_sources == 0:
+        return 0
+    if weights is None:
+        weights = np.ones(n_sources)
+    total_weight = sum(weights)
+    threshold = total_weight / 2
+
+    for sources_positive in powerset(sources):
+        sources_positive = np.array(sources_positive)
+        weight_sources_positive = 0
+        if len(sources_positive) != 0:
+            weight_sources_positive = np.sum(weights[sources_positive])
+        if weight_sources_positive >= threshold:
+            probabilities_list = [
+                reliabilities[source] for source in sources_positive
+            ] + [
+                1 - reliabilities[source]
+                for source in sources
+                if source not in sources_positive
+            ]
+            probability_subset = np.prod(probabilities_list)
+            if weight_sources_positive > threshold:
+                competence += probability_subset
+            elif weight_sources_positive == threshold:
+                competence += probability_subset / 2
+    return competence
