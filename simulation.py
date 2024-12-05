@@ -92,6 +92,8 @@ class Simulation:
             "team_type": team_type,
             "accuracy": accuracy,
             "precision": precision,
+            "pool_accuracy": team.pool_accuracy(),
+            "bounded_pool_accuracy": team.bounded_pool_accuracy(),
             "diversity": team.diversity(),
             "average": team.average(),
         }
