@@ -7,14 +7,20 @@ from statsmodels.stats.proportion import proportion_confint
 import utils.config as cfg
 
 
-def majority_winner(values: list):
-    """Basic function to determine the majority winner in a binary decision context."""
+def majority_winner(values: list, return_value: bool = True):
+    """Basic function to determine the majority winner in a binary decision context.
+    Returns a single value when return_value is True, otherwise a list of value(s).
+    """
     options = sorted(set(values))
     threshold = len(values) / 2
     for option in options:
         if values.count(option) > threshold:
-            return option
-    return rd.choice(options)
+            if return_value:
+                return option
+            return [option]
+    if return_value:
+        return rd.choice(options)
+    return options
 
 
 def powerset(iterable):

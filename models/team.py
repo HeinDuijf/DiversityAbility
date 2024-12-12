@@ -14,7 +14,7 @@ from utils.basic_functions import (
 
 
 class Team:
-    def __init__(self, members, sources: Sources):
+    def __init__(self, members: list[Agent], sources: Sources):
         self.members = members
         self.sources = sources
         self.size = len(self.members)
@@ -68,8 +68,11 @@ class Team:
                     self.sources.set_valence(source, cfg.vote_for_negative)
 
             self.update_opinions()
-            team_decision = self.aggregate()
-            if team_decision == cfg.vote_for_positive:
+            team_decision = majority_winner(
+                [agent.opinion for agent in self.members], return_value=False
+            )
+
+            if len(team_decision) == 1 and cfg.vote_for_positive in team_decision:
                 probabilities_list = [
                     self.sources.reliabilities[source] for source in sources_positive
                 ] + [
@@ -79,6 +82,16 @@ class Team:
                 ]
                 probability_subset = np.prod(probabilities_list)
                 accuracy += probability_subset
+            elif len(team_decision) == 2:
+                probabilities_list = [
+                    self.sources.reliabilities[source] for source in sources_positive
+                ] + [
+                    1 - self.sources.reliabilities[source]
+                    for source in sources_relevant
+                    if source not in sources_positive
+                ]
+                probability_subset = np.prod(probabilities_list)
+                accuracy += probability_subset / 2
         return accuracy, None
 
     def average(self) -> float:
