@@ -7,7 +7,7 @@ from utils.basic_functions import calculate_competence
 
 
 class Sources:
-    def __init__(self, n_sources, reliability_distribution=("unidist", (0.5, 0.7))):
+    def __init__(self, n_sources, reliability_distribution=("equi", (0.5, 0.7))):
         self.n_sources = n_sources
         self.sources = np.arange(n_sources, dtype=int)
         self.reliability_distribution = reliability_distribution
@@ -16,7 +16,7 @@ class Sources:
         self.update_valences()
 
     def initialize_reliabilities(self) -> np.array:
-        if "unidist" in self.reliability_distribution[0]:
+        if "equi" in self.reliability_distribution[0]:
             reliability_range = self.reliability_distribution[1]
             reliability_distance = reliability_range[1] - reliability_range[0]
             step = reliability_distance / (self.n_sources - 1)
