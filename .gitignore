@@ -7,8 +7,8 @@
 archive
 lib
 data/communities*
-data/sim*
 .gitattributes
 .gitignore
 calculator.py
 notes.md
+playground*
