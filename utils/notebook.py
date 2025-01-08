@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 import pyvis
 import seaborn as sns
-from IPython.display import HTML
 from pyvis.network import Network
 
 from models.agent import Agent
