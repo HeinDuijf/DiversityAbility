@@ -16,7 +16,7 @@ class Simulation:
         filename_csv: str = None,
         team_types: list = ["expert", "diverse"],
         n_sources: int = 13,
-        reliability_distribution=("unidist", (0.5, 0.7)),
+        reliability_distribution=("equidist", (0.5, 0.7)),
         heuristic_size: int = 5,
         team_size: int = 9,
         n_samples: int = 10**3,
