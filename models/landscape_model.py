@@ -279,9 +279,9 @@ if __name__ == "__main__":
     Smoothness = range(1, 9)
     Sigma = [0]
     # Sigma = [0, 4, 8, 12]
-    # Trust = [1]
-    Trust = [0, 0.33, 0.5, 1]
-    Simulation(Smoothness, Sigma, Trust).simulation().to_csv("landscape.csv")
+    Trust = [1]
+    # Trust = [0, 0.33, 0.5, 1]
+    Simulation(Smoothness, Sigma, Trust).simulation().to_csv("data/landscape.csv")
 
     # if len(sys.argv) != 4:
     #     print("error")
