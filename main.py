@@ -15,6 +15,6 @@ if __name__ == "__main__":
         team_types=["expert", "diverse"],
         n_sources_list=[13, 17],
         reliability_distribution_list=rels,
-        n_samples=10**2,
+        n_samples=10**4,
         estimate_sample_size=10**4,
     ).run()
