@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-from models.determine_teams import expert_team
+from models.generate_teams import generate_expert_team
 from models.sources import Sources
 
 
@@ -22,7 +22,7 @@ def produce_df_expert_team_individual(outcome: str = "accuracy", n_decimals=3):
 
         rel_range = (rel_mean - 0.1, rel_mean + 0.1)
         sources = Sources(n_sources, ("equi", rel_range))
-        team_dummy = expert_team(sources, heuristic_size, 1)
+        team_dummy = generate_expert_team(sources, heuristic_size, 1)
         best_individual = team_dummy.members[0]
 
         expert_team_outcome = df.at[0, outcome]

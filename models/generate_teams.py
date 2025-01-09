@@ -7,7 +7,7 @@ from models.team import Team
 from utils.basic_functions import calculate_diversity
 
 
-def expert_team(sources: Sources, heuristic_size: int, team_size: int):
+def generate_expert_team(sources: Sources, heuristic_size: int, team_size: int):
     possible_agents = [
         Agent(id, heuristic, sources)
         for id, heuristic in enumerate(sources.all_heuristics(heuristic_size))
@@ -18,7 +18,7 @@ def expert_team(sources: Sources, heuristic_size: int, team_size: int):
     return Team(best_agents, sources)
 
 
-def diverse_team(sources: Sources, heuristic_size: int, team_size: int):
+def generate_diverse_team(sources: Sources, heuristic_size: int, team_size: int):
     possible_agents = (
         Agent(id, heuristic, sources)
         for id, heuristic in enumerate(sources.all_heuristics(heuristic_size))
@@ -43,7 +43,7 @@ def diverse_team(sources: Sources, heuristic_size: int, team_size: int):
     return Team(diverse_group, sources)
 
 
-def random_team(sources: Sources, heuristic_size: int, team_size: int):
+def generate_random_team(sources: Sources, heuristic_size: int, team_size: int):
     all_heuristics = list(sources.all_heuristics(heuristic_size))
     random_heuristics = rd.sample(all_heuristics, team_size)
     random_group = [
@@ -55,7 +55,7 @@ def random_team(sources: Sources, heuristic_size: int, team_size: int):
 if __name__ == "__main__":
     sources = Sources(n_sources=21)
     start = time.time()
-    team = diverse_team(sources, heuristic_size=5, team_size=9)
+    team = generate_diverse_team(sources, heuristic_size=5, team_size=9)
     mid = time.time()
     print(f"Accuracy team: {team.accuracy()}")
     stop = time.time()

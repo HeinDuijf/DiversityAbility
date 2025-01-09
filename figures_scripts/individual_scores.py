@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from models.determine_teams import expert_team
+from models.generate_teams import generate_expert_team
 from models.sources import Sources
 
 
@@ -27,20 +27,26 @@ def boxplot_individual_scores(date="202412"):
         reliability_distribution = ("equi", (rel_mean - 0.1, rel_mean + 0.1))
         sources = Sources(n_sources, reliability_distribution)
         n_possible_heuristics = comb(n_sources, heuristic_size)
-        team = expert_team(sources, heuristic_size, n_possible_heuristics)
+        team = generate_expert_team(sources, heuristic_size, n_possible_heuristics)
         data = np.array([agent.score for agent in team.members])
         data_df = pd.DataFrame(data, columns=[rel_mean])
         scores_df_13 = pd.concat([scores_df_13, data_df], axis=1)
 
-    font_style = {"family": "Calibri", "size": 16}
-    plt.rc("font", **font_style)
     sns.set_style("whitegrid")
+    font_style = {"family": "Times New Roman", "size": 12}
+    plt.rc("font", **font_style)
+    plt.figure(figsize=(6, 3))
+
     fig = sns.boxplot(data=scores_df_13, palette="Grays")
     fig.set_yticks(0.4 + 0.1 * np.arange(7, dtype=int))
     # fig.set_title("Individual scores")
     fig.set_xlabel("Mean source reliability")
     fig.set_ylabel("Score")
-    plt.savefig("figures/individual_scores.png", bbox_inches="tight")
+    plt.savefig(
+        "figures/individual_scores.eps", bbox_inches="tight", dpi=800, format="eps"
+    )
+    plt.savefig("figures/individual_scores.png", bbox_inches="tight", dpi=800)
+    plt.close()
 
 
 def df_individual_scores(date="202412"):
@@ -58,7 +64,7 @@ def df_individual_scores(date="202412"):
         reliability_distribution = ("equi", (rel_mean - 0.1, rel_mean + 0.1))
         sources = Sources(n_sources, reliability_distribution)
         n_possible_heuristics = comb(n_sources, heuristic_size)
-        team = expert_team(sources, heuristic_size, n_possible_heuristics)
+        team = generate_expert_team(sources, heuristic_size, n_possible_heuristics)
         data = np.array([agent.score for agent in team.members])
         data_mean = data.mean()
         data_std = data.std()

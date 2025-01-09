@@ -6,7 +6,11 @@ from concurrent.futures import ProcessPoolExecutor as Pool
 import pandas as pd
 import tqdm
 
-from models.determine_teams import diverse_team, expert_team, random_team
+from models.generate_teams import (
+    generate_diverse_team,
+    generate_expert_team,
+    generate_random_team,
+)
 from models.sources import Sources
 
 
@@ -61,15 +65,15 @@ class Simulation:
             "team_size": self.team_size,
         }
         if team_type == "expert":
-            team = expert_team(**team_params)
+            team = generate_expert_team(**team_params)
             accuracy, precision = team.accuracy()
         elif team_type == "diverse":
-            team = diverse_team(**team_params)
+            team = generate_diverse_team(**team_params)
             accuracy, precision = team.accuracy(
                 estimate_sample_size=self.estimate_sample_size
             )
         elif team_type == "random":
-            team = random_team(**team_params)
+            team = generate_random_team(**team_params)
             accuracy, precision = team.accuracy(
                 estimate_sample_size=self.estimate_sample_size
             )

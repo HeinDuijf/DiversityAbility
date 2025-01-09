@@ -61,10 +61,10 @@ def produce_df_1samp(outcome: str = "accuracy", n_decimals=3):
         diverse_error = 1 - diverse_accuracy
         expert_error = 1 - expert_accuracy
 
-        if expert_error > diverse_error:
+        if diverse_accuracy > expert_accuracy:
             error_reduction = 100 * (expert_error - diverse_error) / diverse_error
             # error_reduction = - (expert_error / diverse_error)
-        elif diverse_error > expert_error:
+        elif expert_accuracy > diverse_accuracy:
             error_reduction = -100 * (diverse_error - expert_error) / expert_error
             # error_reduction = diverse_error / expert_error
         else:
@@ -87,7 +87,7 @@ def produce_df_1samp(outcome: str = "accuracy", n_decimals=3):
                 round(pvalue, 4),
                 statistic,
                 round(diverse_accuracy - expert_accuracy, n_decimals),
-                round(error_reduction),
+                round(error_reduction, 1),
                 diverse_std,
             ]
         )

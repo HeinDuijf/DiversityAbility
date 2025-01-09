@@ -1,5 +1,9 @@
 import utils.config as cfg
-from models.determine_teams import diverse_team, expert_team, random_team
+from models.generate_teams import (
+    generate_diverse_team,
+    generate_expert_team,
+    generate_random_team,
+)
 from models.sources import Sources
 from models.team import Team
 
