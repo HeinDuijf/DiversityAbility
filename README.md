@@ -18,7 +18,7 @@ teams:
 3. Random teams consisting of a randomly selected agents. 
 
 To get a feel for the 
-agent-based model, see the picture below and the [Jupyter Notebook](/NotebookWalkthrough.ipynb).
+agent-based model, see the picture below and the [Jupyter Notebook](/NotebookWalkthrough.ipynb) or the [GitHub page](https://heinduijf.github.io/DiversityAbility/).
 
 [![A picture of an example of a team consisting of randomly selected agents](/www/example_random_team.png "An example of an agent-based model")]()
 
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 
 ## 2. Simulation
 1. To get a feel for the agent-based model, you can check out this
-[Jupyter Notebook](NotebookWalkthrough.ipynb), which includes some network 
+[Jupyter Notebook](NotebookWalkthrough.ipynb) (or the [GitHub page](https://heinduijf.github.io/DiversityAbility/)), which includes some network 
 visualizations by running
 ```commandline
 jupyter-notebook NotebookWalkthrough.ipynb
