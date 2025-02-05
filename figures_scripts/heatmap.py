@@ -9,6 +9,7 @@ def visualize_heatmap(
     measure: str = "absolute",
     mask: bool = True,
     colors: bool = False,
+    show: bool = False,
 ):
     df = produce_df_1samp(outcome)
     if measure == "absolute":
@@ -44,7 +45,12 @@ def visualize_heatmap(
         if not colors:
             labels = pivot_df.copy()
             labels = labels.astype(str).map(
-                lambda x: ("+" + x)[:4] if "-" not in x else x[:4]
+                lambda x: (
+                    ("+" + x).split(".")[0] + "." + ("+" + x).split(".")[1][0]
+                    if "-" not in x
+                    else x.split(".")[0] + "." + x.split(".")[1][0]
+                )
+                # lambda x: ("+" + x)[:4] if "-" not in x else x[:4]
             )
             heatmap_params["annot"] = labels
             heatmap_params["fmt"] = ""
@@ -96,4 +102,6 @@ def visualize_heatmap(
         bbox_inches="tight",
         dpi=800,
     )
+    if show:
+        plt.show()
     plt.close()
