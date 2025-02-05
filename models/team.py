@@ -14,6 +14,28 @@ from utils.basic_functions import (
 
 
 class Team:
+    """
+    A class representing a team.
+
+    Attributes
+    ----------
+        members (list[Agent]):
+            A list containing the members of the team.
+        sources (Sources):
+            The sources that the team could access.
+        size (int):
+            The size of the team.
+
+    Methods
+    -------
+        accuracy:
+            Returns the accuracy for the opinion-based dynamics.
+        pool_accuracy:
+            Returns the accuracy for the evidence-based dynamics.
+        bounded_pool_accuracy:
+            Returns the accuracy for the boundedly rational evidence-based dynamics.
+    """
+
     def __init__(self, members: list[Agent], sources: Sources):
         self.members = members
         self.sources = sources

@@ -11,6 +11,10 @@ import pandas as pd
 
 
 class Landscape:
+    """
+    From https://github.com/alicecwhuang/noisy-search/tree/master.
+    """
+
     def __init__(self, smoothness, length=10):
 
         self.s = smoothness

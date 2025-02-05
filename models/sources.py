@@ -7,6 +7,24 @@ from utils.basic_functions import calculate_competence
 
 
 class Sources:
+    """
+    A class representing sources.
+
+    Attributes
+    ----------
+        n_sources (int):
+            The number of sources.
+        sources (np.array):
+            An array containing the sources.
+        reliabilitiy_distribution:
+            The type of reliability distribution. At the moment, only equidistant
+            distributions are implemented.
+        reliabilities (np.array[float]):
+            An array containing the sources’ reliabilities.
+        valences (list):
+            A list containing the sources’ valences.
+    """
+
     def __init__(self, n_sources, reliability_distribution=("equi", (0.5, 0.7))):
         self.n_sources = n_sources
         self.sources = np.arange(n_sources, dtype=int)

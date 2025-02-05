@@ -3,6 +3,20 @@ from utils.basic_functions import calculate_competence, majority_winner
 
 
 class Agent:
+    """
+    A class representing an agent.
+
+    Attributes
+    ----------
+        heuristic:
+            The agent’s heuristic, which is represented by the set of sources she has
+            access to.
+        sources (Sources):
+            The sources that the agent could access.
+        score:
+            The agent’s score.
+    """
+
     def __init__(self, no, heuristic, sources: Sources):
         self.no = no
         self.heuristic = heuristic
