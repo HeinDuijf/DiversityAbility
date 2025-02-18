@@ -44,13 +44,8 @@ def visualize_heatmap(
         heatmap_params["annot"] = True
         if not colors:
             labels = pivot_df.copy()
-            labels = labels.astype(str).map(
-                lambda x: (
-                    ("+" + x).split(".")[0] + "." + ("+" + x).split(".")[1][0]
-                    if "-" not in x
-                    else x.split(".")[0] + "." + x.split(".")[1][0]
-                )
-                # lambda x: ("+" + x)[:4] if "-" not in x else x[:4]
+            labels = labels.map(
+                lambda x: (f"+{x:.1f}" if "-" not in str(x) else f"{x:.1f}")
             )
             heatmap_params["annot"] = labels
             heatmap_params["fmt"] = ""
@@ -63,8 +58,8 @@ def visualize_heatmap(
         heatmap_params["annot"] = True
         if not colors:
             labels = pivot_df.copy()
-            labels = labels.astype(str).map(
-                lambda x: ("+" + x).split(".")[0] if "-" not in x else x.split(".")[0]
+            labels = labels.map(
+                lambda x: f"+{x:.0f}" if "-" not in str(x) else f"{x:.0f}"
             )
             heatmap_params["annot"] = labels
             heatmap_params["fmt"] = ""
