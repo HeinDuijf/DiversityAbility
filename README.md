@@ -11,7 +11,7 @@ agents outperforms a team comprised of the best-performing agents.
 
 This repository 
 investigates the collective problem-solving capacities of teams in a new formal 
-framework: a (probabilistic) source reliability model. We consider three types of 
+framework: a (probabilistic) evidential sources model. We consider three types of 
 teams:
 1. Expert teams consisting of the best-performing agents;
 2. Diverse teams consisting of a (cognitively) diverse set of agents;
@@ -78,6 +78,6 @@ The figures in the paper can be reproduced by running `figures.py`. This will cr
 
 ## 6. Licence and citation
 This repository accompanies an academic paper (in progress). In the meantime, please cite as follows:
-- Duijf, H. (2025). Diversity and ability in a source reliability model. _GitHub_. https://github.com/HeinDuijf/DiversityAbility 
+- Duijf, H. (2025). Diversity and ability in an evidential sources framework. _GitHub_. https://github.com/HeinDuijf/DiversityAbility 
 
 Released under the [MIT licence](LICENCE.md).
