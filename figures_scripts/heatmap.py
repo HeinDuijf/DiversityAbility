@@ -65,8 +65,13 @@ def visualize_heatmap(
             heatmap_params["fmt"] = ""
             heatmap_params["vmin"] = 0
 
+    if colors:
+        plot_df = pivot_df
+    else:
+        plot_df = abs(pivot_df)
+
     if not mask:
-        fig = sns.heatmap(abs(pivot_df), **heatmap_params)
+        fig = sns.heatmap(plot_df, **heatmap_params)
     else:
         mask_df = df.pivot(
             index="rel_mean",
@@ -75,8 +80,9 @@ def visualize_heatmap(
         )
         mask_df = mask_df.astype(bool)
         mask_df.sort_index(inplace=True, ascending=False)
+
         fig = sns.heatmap(
-            abs(pivot_df),
+            plot_df,
             mask=mask_df,
             # annot=labels,
             **heatmap_params,
