@@ -5,8 +5,9 @@ import pandas as pd
 import scipy.stats as stats
 
 
-def produce_df(team_type="expert", outcome: str = "accuracy", n_decimals=1):
-    date = "202412"
+def produce_df(
+    team_type="expert", outcome: str = "accuracy", n_decimals=1, date="202412"
+):
     files = [
         file
         for file in os.listdir("data")
@@ -21,8 +22,8 @@ def produce_df(team_type="expert", outcome: str = "accuracy", n_decimals=1):
             result = df.at[0, outcome]
             result = result * 100
             std = 0
-        elif team_type == "diverse":
-            df_div = df[df["team_type"] == "diverse"]
+        elif "diverse" in team_type:
+            df_div = df[df["team_type"] == team_type]
             df_test = df_div.copy()
             result = df_test[outcome].mean()
             result = result * 100
@@ -41,8 +42,7 @@ def produce_df(team_type="expert", outcome: str = "accuracy", n_decimals=1):
     return pd.DataFrame(results, columns=columns)
 
 
-def produce_df_1samp(outcome: str = "accuracy", n_decimals=3):
-    date = "202412"
+def produce_df_1samp(outcome: str = "accuracy", n_decimals=3, date="202412"):
     files = [
         file
         for file in os.listdir("data")
