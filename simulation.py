@@ -9,6 +9,7 @@ import tqdm
 from models.generate_teams import (
     generate_diverse_team,
     generate_expert_team,
+    generate_qualified_diverse_team,
     generate_random_team,
 )
 from models.sources import Sources
@@ -74,6 +75,14 @@ class Simulation:
             )
         elif team_type == "random":
             team = generate_random_team(**team_params)
+            accuracy, precision = team.accuracy(
+                estimate_sample_size=self.estimate_sample_size
+            )
+        elif "qualified_diverse" in team_type:
+            qualified_percentile = float(team_type.split("_")[-1])
+            team = generate_qualified_diverse_team(
+                **team_params, qualifying_percentile=qualified_percentile
+            )
             accuracy, precision = team.accuracy(
                 estimate_sample_size=self.estimate_sample_size
             )
