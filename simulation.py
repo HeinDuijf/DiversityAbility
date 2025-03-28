@@ -45,19 +45,26 @@ class Simulation:
 
     def run(self):
         with Pool() as pool:
+            params, total = self.get_params()
             results_df = pd.DataFrame(
                 tqdm.tqdm(
-                    pool.map(self.team_simulate, self.params()),
-                    total=self.n_samples + 1,
+                    pool.map(self.team_simulate, params),
+                    total=total,
                 ),
             )
         results_df.to_csv(self.filename_csv)
 
-    def params(self):
-        expert_params = ["expert"]
-        diverse_params = it.repeat("diverse", self.n_samples)
-        # random_params = it.repeat("random", self.n_samples)
-        return it.chain(expert_params, diverse_params)
+    def get_params(self):
+        params_set = []
+        total: int = 0
+        if "expert" in self.team_types:
+            params_set = it.chain(params_set, ["expert"])
+            total += 1
+        for team_type in self.team_types:
+            if "diverse" in team_type:
+                params_set = it.chain(params_set, it.repeat(team_type, self.n_samples))
+                total += self.n_samples
+        return params_set, total
 
     def team_simulate(self, team_type: str):
         team_params = {

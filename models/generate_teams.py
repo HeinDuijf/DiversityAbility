@@ -57,10 +57,10 @@ def generate_random_team(sources: Sources, heuristic_size: int, team_size: int):
 def generate_qualified_diverse_team(
     sources: Sources, heuristic_size: int, team_size: int, qualifying_percentile: float
 ):
-    all_possible_agents = (
+    all_possible_agents = [
         Agent(id, heuristic, sources)
         for id, heuristic in enumerate(sources.all_heuristics(heuristic_size))
-    )
+    ]
     agent_scores = [agent.score for agent in all_possible_agents]
     qualifying_score = np.percentile(agent_scores, qualifying_percentile)
     qualified_agents = [
@@ -88,9 +88,11 @@ def generate_qualified_diverse_team(
 
 
 if __name__ == "__main__":
-    sources = Sources(n_sources=21)
+    sources = Sources(n_sources=13)
     start = time.time()
-    team = generate_diverse_team(sources, heuristic_size=5, team_size=9)
+    team = generate_qualified_diverse_team(
+        sources, heuristic_size=5, team_size=9, qualifying_percentile=90
+    )
     mid = time.time()
     print(f"Accuracy team: {team.accuracy()}")
     stop = time.time()
