@@ -6,12 +6,18 @@ from data_analysis.statistics import produce_df_1samp
 
 def visualize_heatmap(
     outcome: str = "accuracy",
+    diverse_team_type: str = "diverse",
+    heuristic_size: int = 5,
     measure: str = "absolute",
     mask: bool = True,
     colors: bool = False,
     show: bool = False,
 ):
-    df = produce_df_1samp(outcome)
+    df = produce_df_1samp(
+        outcome=outcome,
+        diverse_team_type=diverse_team_type,
+        heuristic_size=heuristic_size,
+    )
     if measure == "absolute":
         df["effect_percent"] = 100 * df["difference"]
     if measure == "relative":
@@ -34,9 +40,11 @@ def visualize_heatmap(
         "square": True,
         "cbar_kws": {"shrink": 0.4},
     }
+    df_heatmap = abs(pivot_df)
     if colors:
         heatmap_params["cmap"] = "coolwarm"
         heatmap_params["center"] = 0
+        df_heatmap = pivot_df
 
     if measure == "absolute":
         heatmap_params["vmin"] = -10
@@ -66,7 +74,7 @@ def visualize_heatmap(
             heatmap_params["vmin"] = 0
 
     if not mask:
-        fig = sns.heatmap(abs(pivot_df), **heatmap_params)
+        fig = sns.heatmap(df_heatmap, **heatmap_params)
     else:
         mask_df = df.pivot(
             index="rel_mean",
@@ -76,7 +84,7 @@ def visualize_heatmap(
         mask_df = mask_df.astype(bool)
         mask_df.sort_index(inplace=True, ascending=False)
         fig = sns.heatmap(
-            abs(pivot_df),
+            df_heatmap,
             mask=mask_df,
             # annot=labels,
             **heatmap_params,
