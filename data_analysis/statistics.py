@@ -6,7 +6,11 @@ import scipy.stats as stats
 
 
 def produce_df(
-    team_type="expert", outcome: str = "accuracy", n_decimals=1, date="202412"
+    outcome: str = "accuracy",
+    team_type: str = "expert",
+    heuristic_size: int = 5,
+    n_decimals: int = 1,
+    date: str = "",
 ):
     files = [
         file
@@ -16,33 +20,38 @@ def produce_df(
     results = []
     for file in files:
         df = pd.read_csv(f"data/{file}")
-        n_sources = df.at[0, "n_sources"]
-        rel_mean = df.at[0, "reliability_mean"]
-        if team_type == "expert":
-            result = df.at[0, outcome]
-            result = result * 100
-            std = 0
-        elif "diverse" in team_type:
-            df_div = df[df["team_type"] == team_type]
-            df_test = df_div.copy()
-            result = df_test[outcome].mean()
-            result = result * 100
-            std = df_test[outcome].std()
-            std = std * 100
+        if team_type in df.team_type.values:
+            if heuristic_size in df.heuristic_size.values:
+                n_sources = df.at[0, "n_sources"]
+                rel_mean = df.at[0, "reliability_mean"]
+                df_team_type = df[df["team_type"] == team_type]
+                result = df_team_type[outcome].mean()
+                result = result * 100
+                std = df_team_type[outcome].std()
+                std = std * 100
+                if team_type == "expert":
+                    std = 0
 
-        results.append(
-            [
-                n_sources,
-                rel_mean,
-                round(result, n_decimals),
-                round(std, n_decimals),
-            ]
-        )
+                results.append(
+                    [
+                        n_sources,
+                        rel_mean,
+                        round(result, n_decimals),
+                        round(std, n_decimals),
+                    ]
+                )
     columns = ["n_sources", "rel_mean", outcome, "std"]
     return pd.DataFrame(results, columns=columns)
 
 
-def produce_df_1samp(outcome: str = "accuracy", n_decimals=3, date="202412"):
+def produce_df_1samp(
+    outcome: str = "accuracy",
+    diverse_team_type: str = "diverse",
+    heuristic_size: int = 5,
+    n_decimals: int = 3,
+    p_decimals: int = 4,
+    date: str = "",
+):
     files = [
         file
         for file in os.listdir("data")
@@ -51,46 +60,52 @@ def produce_df_1samp(outcome: str = "accuracy", n_decimals=3, date="202412"):
     results = []
     for file in files:
         df = pd.read_csv(f"data/{file}")
-        n_sources = df.at[0, "n_sources"]
-        rel_mean = df.at[0, "reliability_mean"]
-        df_div = df[df["team_type"] == "diverse"]
-        df_test = df_div.copy()
-        diverse_accuracy = df_test[outcome].mean()
-        expert_accuracy = df.at[0, outcome]
+        if heuristic_size in df.heuristic_size.values:
+            if diverse_team_type in df.team_type.values:
+                n_sources = df.at[0, "n_sources"]
+                rel_mean = df.at[0, "reliability_mean"]
+                df_diverse = df[df["team_type"] == diverse_team_type]
+                # df_diverse = df_dummy.copy()
+                diverse_accuracy = df_diverse[outcome].mean()
+                expert_accuracy = df[df["team_type"] == "expert"][outcome].mean()
 
-        diverse_error = 1 - diverse_accuracy
-        expert_error = 1 - expert_accuracy
+                diverse_error = 1 - diverse_accuracy
+                expert_error = 1 - expert_accuracy
 
-        if diverse_accuracy > expert_accuracy:
-            error_reduction = 100 * (expert_error - diverse_error) / diverse_error
-            # error_reduction = - (expert_error / diverse_error)
-        elif expert_accuracy > diverse_accuracy:
-            error_reduction = -100 * (diverse_error - expert_error) / expert_error
-            # error_reduction = diverse_error / expert_error
-        else:
-            error_reduction = 0
+                if diverse_accuracy > expert_accuracy:
+                    error_reduction = (
+                        100 * (expert_error - diverse_error) / diverse_error
+                    )
+                    # error_reduction = - (expert_error / diverse_error)
+                elif expert_accuracy > diverse_accuracy:
+                    error_reduction = (
+                        -100 * (diverse_error - expert_error) / expert_error
+                    )
+                    # error_reduction = diverse_error / expert_error
+                else:
+                    error_reduction = 0
 
-        if outcome == "pool_accuracy":
-            statistic = np.nan
-            pvalue = 0
-            diverse_std = np.nan
-        else:
-            diverse_std = df_test[outcome].std()
-            result = stats.wilcoxon(df_test[outcome] - expert_accuracy)
-            pvalue = result.pvalue
-            statistic = result.statistic
+                if outcome == "pool_accuracy":
+                    statistic = np.nan
+                    pvalue = 0
+                    diverse_std = np.nan
+                else:
+                    diverse_std = df_diverse[outcome].std()
+                    result = stats.wilcoxon(df_diverse[outcome] - expert_accuracy)
+                    pvalue = result.pvalue
+                    statistic = result.statistic
 
-        results.append(
-            [
-                n_sources,
-                rel_mean,
-                round(pvalue, 4),
-                statistic,
-                round(diverse_accuracy - expert_accuracy, n_decimals),
-                round(error_reduction, 1),
-                diverse_std,
-            ]
-        )
+                results.append(
+                    [
+                        n_sources,
+                        rel_mean,
+                        round(pvalue, p_decimals),
+                        statistic,
+                        round(diverse_accuracy - expert_accuracy, n_decimals),
+                        round(error_reduction, 1),
+                        diverse_std,
+                    ]
+                )
     columns = [
         "n_sources",
         "rel_mean",

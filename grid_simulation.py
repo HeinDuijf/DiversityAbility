@@ -10,12 +10,14 @@ class GridSimulation:
         n_sources_list: list,
         reliability_distribution_list: list,
         n_samples: int,
+        heuristic_size: int = 5,
         estimate_sample_size: int = None,
     ):
         self.team_types = team_types
         self.n_sources_list = n_sources_list
         self.reliability_distribution_list = reliability_distribution_list
         self.n_samples = n_samples
+        self.heuristic_size = heuristic_size
         self.estimate_sample_size = estimate_sample_size
 
     def run(self):
@@ -32,7 +34,7 @@ class GridSimulation:
                 "team_types": self.team_types,
                 "n_sources": n_sources,
                 "reliability_distribution": rel_dist,
-                "heuristic_size": 5,
+                "heuristic_size": self.heuristic_size,
                 "team_size": 9,
                 "n_samples": self.n_samples,
                 "estimate_sample_size": None,
