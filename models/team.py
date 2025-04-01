@@ -50,14 +50,16 @@ class Team:
 
     def pool_accuracy(self):
         sources_accessed = np.unique(
-            np.array([agent.heuristic for agent in self.members]).flatten()
+            np.array(
+                [source for agent in self.members for source in agent.heuristic]
+            ).flatten()
         )
         reliabilities = self.sources.reliabilities[sources_accessed]
         return calculate_competence(reliabilities)
 
     def bounded_pool_accuracy(self):
         sources_accessed = np.array(
-            [agent.heuristic for agent in self.members]
+            [source for agent in self.members for source in agent.heuristic]
         ).flatten()
         sources_accessed, weights = np.unique(sources_accessed, return_counts=True)
         reliabilities = self.sources.reliabilities[sources_accessed]
@@ -78,8 +80,14 @@ class Team:
             return estimated_accuracy, precision
 
         # 2. Else calculate
-        heuristics = np.array([agent.heuristic for agent in self.members])
-        sources_relevant = np.unique(heuristics.flatten())
+        sources_relevant = np.unique(
+            np.array(
+                [source for agent in self.members for source in agent.heuristic]
+            ).flatten()
+        )
+        # sources_relevant = np.unique(sources_relevant.flatten())
+        # heuristics = [agent.heuristic for agent in self.members]
+        # sources_relevant = np.unique(heuristics.flatten())
 
         accuracy = 0
         for sources_positive in powerset(sources_relevant):

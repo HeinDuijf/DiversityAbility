@@ -1,3 +1,4 @@
+import itertools as it
 import random as rd
 import time
 
@@ -10,10 +11,16 @@ from utils.basic_functions import calculate_diversity
 
 
 def generate_expert_team(sources: Sources, heuristic_size: int, team_size: int):
+    if not isinstance(heuristic_size, list):
+        heuristic_size = [heuristic_size]
+
+    all_heuristics = it.chain.from_iterable(
+        sources.all_heuristics(size) for size in heuristic_size
+    )
     possible_agents = [
-        Agent(id, heuristic, sources)
-        for id, heuristic in enumerate(sources.all_heuristics(heuristic_size))
+        Agent(id, heuristic, sources) for id, heuristic in enumerate(all_heuristics)
     ]
+
     agent_score_tuples = [[agent, agent.score] for agent in possible_agents]
     agent_score_tuples.sort(key=lambda item: item[1], reverse=True)
     best_agents = [agent for [agent, _] in agent_score_tuples[:team_size]]
@@ -21,10 +28,16 @@ def generate_expert_team(sources: Sources, heuristic_size: int, team_size: int):
 
 
 def generate_diverse_team(sources: Sources, heuristic_size: int, team_size: int):
-    possible_agents = (
-        Agent(id, heuristic, sources)
-        for id, heuristic in enumerate(sources.all_heuristics(heuristic_size))
+    if not isinstance(heuristic_size, list):
+        heuristic_size = [heuristic_size]
+
+    all_heuristics = it.chain.from_iterable(
+        sources.all_heuristics(size) for size in heuristic_size
     )
+    possible_agents = [
+        Agent(id, heuristic, sources) for id, heuristic in enumerate(all_heuristics)
+    ]
+
     diversity_dict = {agent: 0 for agent in possible_agents}
     diverse_group = []
     for _ in range(team_size):
@@ -46,25 +59,37 @@ def generate_diverse_team(sources: Sources, heuristic_size: int, team_size: int)
 
 
 def generate_random_team(sources: Sources, heuristic_size: int, team_size: int):
-    all_heuristics = list(sources.all_heuristics(heuristic_size))
-    random_heuristics = rd.sample(all_heuristics, team_size)
-    random_group = [
-        Agent(no, heuristic, sources) for no, heuristic in enumerate(random_heuristics)
+    if not isinstance(heuristic_size, list):
+        heuristic_size = [heuristic_size]
+
+    all_heuristics = it.chain.from_iterable(
+        sources.all_heuristics(size) for size in heuristic_size
+    )
+    possible_agents = [
+        Agent(id, heuristic, sources) for id, heuristic in enumerate(all_heuristics)
     ]
+
+    random_group = rd.sample(possible_agents, team_size)
     return Team(random_group, sources)
 
 
 def generate_qualified_diverse_team(
     sources: Sources, heuristic_size: int, team_size: int, qualifying_percentile: float
 ):
-    all_possible_agents = [
-        Agent(id, heuristic, sources)
-        for id, heuristic in enumerate(sources.all_heuristics(heuristic_size))
+    if not isinstance(heuristic_size, list):
+        heuristic_size = [heuristic_size]
+
+    all_heuristics = it.chain.from_iterable(
+        sources.all_heuristics(size) for size in heuristic_size
+    )
+    possible_agents = [
+        Agent(id, heuristic, sources) for id, heuristic in enumerate(all_heuristics)
     ]
-    agent_scores = [agent.score for agent in all_possible_agents]
+
+    agent_scores = [agent.score for agent in possible_agents]
     qualifying_score = np.percentile(agent_scores, qualifying_percentile)
     qualified_agents = [
-        agent for agent in all_possible_agents if agent.score >= qualifying_score
+        agent for agent in possible_agents if agent.score >= qualifying_score
     ]
 
     diversity_dict = {agent: 0 for agent in qualified_agents}

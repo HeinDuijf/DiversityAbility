@@ -104,7 +104,7 @@ class Simulation:
         results_dict = {
             "team_size": self.team_size,
             "n_sources": self.n_sources,
-            "heuristic_size": self.heuristic_size,
+            "heuristic_size": str(self.heuristic_size)[1:-1].replace(", ", "-"),
             "reliability_mean": reliability_mean,
             # "sources_reliability_dist_str": sources_reliability_distribution_str,
             "n_samples": self.n_samples,
