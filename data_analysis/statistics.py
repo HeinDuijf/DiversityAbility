@@ -57,6 +57,9 @@ def produce_df_1samp(
         for file in os.listdir("data")
         if file[:10] == "simulation" and date in file and "README" not in file
     ]
+    if not isinstance(heuristic_size, int):
+        heuristic_size = str(heuristic_size)[1:-1].replace(", ", "-")
+
     results = []
     for file in files:
         df = pd.read_csv(f"data/{file}")
