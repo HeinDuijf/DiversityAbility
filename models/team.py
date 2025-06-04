@@ -65,7 +65,7 @@ class Team:
         reliabilities = self.sources.reliabilities[sources_accessed]
         return calculate_competence_with_duplicates(reliabilities, weights)
 
-    def accuracy(self, estimate_sample_size: int = None) -> tuple:
+    def accuracy(self, estimate_sample_size: int | None = None) -> tuple:
         # 1. Estimate by sampling if estimate_sample_size is integer
         if isinstance(estimate_sample_size, int):
             outcomes = np.array([], dtype=float)
@@ -125,7 +125,7 @@ class Team:
         return accuracy, None
 
     def average(self) -> float:
-        return np.mean([agent.competence() for agent in self.members])
+        return float(np.mean([agent.competence() for agent in self.members]))
 
     def diversity(self) -> float:
         diversity_scores = [

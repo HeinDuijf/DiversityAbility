@@ -33,15 +33,16 @@ class Sources:
         self.valences = []
         self.update_valences()
 
-    def initialize_reliabilities(self) -> np.array:
+    def initialize_reliabilities(self) -> np.ndarray:
         if "equi" in self.reliability_distribution[0]:
             reliability_range = self.reliability_distribution[1]
             reliability_distance = reliability_range[1] - reliability_range[0]
             step = reliability_distance / (self.n_sources - 1)
-            reliabilities = reliability_range[0] + step * np.arange(
+            reliabilities: np.ndarray = reliability_range[0] + step * np.arange(
                 0, self.n_sources, dtype=int
             )
             return reliabilities
+        return np.array([])
 
     def update_valences(self) -> None:
         random_list = np.random.rand(self.n_sources)
