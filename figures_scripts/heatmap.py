@@ -17,6 +17,7 @@ def visualize_heatmap(
         outcome=outcome,
         diverse_team_type=diverse_team_type,
         heuristic_size=heuristic_size,
+        perform_bca_ci=False,
     )
     if measure == "absolute":
         df["effect_percent"] = 100 * df["difference"]
