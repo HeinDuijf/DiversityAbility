@@ -64,7 +64,7 @@ def calculate_diversity(list1: list, list2: list) -> float:
     return diversity
 
 
-def calculate_competence(reliabilities: list | np.ndarray) -> float:
+def calculate_competence(reliabilities: list[float] | np.ndarray) -> float:
     competence: float = 0
     number_of_sources = len(reliabilities)
     sources = np.array(range(len(reliabilities)))
