@@ -18,14 +18,14 @@ from models.sources import Sources
 class Simulation:
     def __init__(
         self,
-        filename_csv: str = None,
+        filename_csv: str | None = None,
         team_types: list = ["expert", "diverse"],
         n_sources: int = 13,
-        reliability_distribution=("equidist", (0.5, 0.7)),
+        reliability_distribution=("equidist", 0.6, 0.2),
         heuristic_size: int = 5,
         team_size: int = 9,
         n_samples: int = 10**3,
-        estimate_sample_size: int = None,
+        estimate_sample_size: int | None = None,
     ):
         time_str = time.strftime("%Y%m%d_%H%M%S")
         self.filename_csv = filename_csv
@@ -93,19 +93,22 @@ class Simulation:
             accuracy, precision = team.accuracy(
                 estimate_sample_size=self.estimate_sample_size
             )
+        else:
+            raise ValueError(f"Unknown team type: {team_type}")
 
-        reliability_mean = (
-            self.reliability_distribution[1][1] - self.reliability_distribution[1][0]
-        ) / 2 + self.reliability_distribution[1][0]
-        # sources_reliability_distribution_str = str(
-        #     self.sources_reliability_distribution
-        # ).replace(",", " to")
+        # reliability_mean = (
+        #     self.reliability_distribution[1][1] - self.reliability_distribution[1][0]
+        # ) / 2 + self.reliability_distribution[1][0]
+        heuristic_str = str(self.heuristic_size)  # type: ignore
+        if isinstance(self.heuristic_size, list):
+            heuristic_str = str(heuristic_str)[1:-1].replace(", ", "-")  # type: ignore
 
         results_dict = {
             "team_size": self.team_size,
             "n_sources": self.n_sources,
-            "heuristic_size": str(self.heuristic_size)[1:-1].replace(", ", "-"),
-            "reliability_mean": reliability_mean,
+            "heuristic_size": heuristic_str,
+            "reliability_mean": self.reliability_distribution[1],
+            "reliability_range": self.reliability_distribution[2],
             # "sources_reliability_dist_str": sources_reliability_distribution_str,
             "n_samples": self.n_samples,
             # "problem_difficulty": team.problem_difficulty(),
