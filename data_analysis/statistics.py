@@ -64,7 +64,7 @@ def wilcoxon_results(
         is computationally costly.
     Returns:
         A dictionary with p-value, effect size, z-statistic, confidence intervals,
-        presence of ties, and ratio of differences.
+        presence of ties, and ratio (proportion of differences with the dominant sign).
     """
     if median_hypothesis is not None:
         data_diff = data - median_hypothesis
@@ -78,7 +78,7 @@ def wilcoxon_results(
         data_diff,
         alternative="two-sided",
     )
-    p_value = scipy_wilcoxon.pvalue
+    p_value = scipy_wilcoxon.pvalue  # type: ignore
     # statistic = wilcoxon_result.statistic
 
     # Step 2: Remove zeros
@@ -112,7 +112,7 @@ def wilcoxon_results(
     if perform_bca_ci:
         ci_low, ci_high = bca_ci(data_diff)
 
-    # Step 9:
+    # Step 9: Compute ratio of positive differences
     ratio_pos = data_diff[data_diff > 0].size / n
     ratio = max(ratio_pos, 1 - ratio_pos)
 
@@ -128,66 +128,60 @@ def wilcoxon_results(
     }
 
 
-def produce_df(
-    outcome: str = "accuracy",
-    team_type: str = "expert",
-    heuristic_size: int = 5,
-    n_decimals: int = 1,
-    date: str = "",
-):
-    files = [
-        file
-        for file in os.listdir("data")
-        if file[:10] == "simulation" and date in file and "README" not in file
-    ]
-    results = []
-    for file in files:
-        df = pd.read_csv(f"data/{file}")
-        if team_type in df.team_type.values:
-            if heuristic_size in df.heuristic_size.values:
-                n_sources = df.at[0, "n_sources"]
-                rel_mean = df.at[0, "reliability_mean"]
-                df_team_type = df[df["team_type"] == team_type]
-                result = df_team_type[outcome].mean()
-                result = result * 100
-                std = df_team_type[outcome].std()
-                std = std * 100
-                if team_type == "expert":
-                    std = 0
-
-                results.append(
-                    [
-                        n_sources,
-                        rel_mean,
-                        round(result, n_decimals),
-                        round(std, n_decimals),
-                    ]
-                )
-    columns = ["n_sources", "rel_mean", outcome, "std"]
-    return pd.DataFrame(results, columns=columns)
-
-
 def produce_df_1samp(
     outcome: str = "accuracy",
     diverse_team_type: str = "diverse",
     heuristic_size: int | list[int] = 5,
+    team_size: int = 9,
+    reliability_range: float = 0.2,
     n_decimals: int = 3,
     p_decimals: int = 4,
     date: str = "",
     perform_bca_ci: bool = True,
 ) -> pd.DataFrame:
+    """Produce a DataFrame summarizing one-sample Wilcoxon test results comparing
+    diverse team performance against expert team performance.
+
+    Args:
+        outcome: The performance metric to analyze (e.g., "accuracy"). Defaults to
+        "accuracy".
+        diverse_team_type: The type of diverse team to analyze (e.g., "diverse").
+        Defaults to "diverse".
+        heuristic_size: The heuristic size used in the simulations. Can be an integer
+        or a list of integers. Defaults to 5.
+        n_decimals: Number of decimal places to round the difference and confidence
+        intervals. Defaults to 3.
+        p_decimals: Number of decimal places to round the p-value. Defaults to 4.
+        date: Date string to filter simulation files. Defaults to "202412".
+        perform_bca_ci: Whether to compute BCa confidence intervals. Defaults to True.
+
+    Returns:
+        A pandas DataFrame containing the results of the one-sample Wilcoxon tests.
+        Column names are self-explanatory, except for
+        'ties': Indicates whether there were tied ranks in the test
+        'ratio': Represents the proportion of differences with the dominant sign.
+        A ratio of 0.8 means 80% of non-zero differences had the same sign.
+    """
+
     files = [
         file
         for file in os.listdir("data")
-        if file[:10] == "simulation" and date in file and "README" not in file
+        if file.split("_")[0] == "simulation"
+        and date in file.split("_")[1]
+        and "README" not in file
     ]
+    heuristic_str: str | int = heuristic_size  # type: ignore
     if isinstance(heuristic_size, list):
-        heuristic_size = str(heuristic_size)[1:-1].replace(", ", "-")  # type: ignore
+        heuristic_str = str(heuristic_str)[1:-1].replace(", ", "-")  # type: ignore
 
     results = []
     for file in files:
         df = pd.read_csv(f"data/{file}")
-        if heuristic_size in df.heuristic_size.values:
+        if (
+            heuristic_str in df.heuristic_size.values
+            and team_size in df.team_size.values
+            and reliability_range in df.reliability_range.values
+        ):
             if diverse_team_type in df.team_type.values:
                 n_sources = df.at[0, "n_sources"]
                 rel_mean = df.at[0, "reliability_mean"]
@@ -214,7 +208,7 @@ def produce_df_1samp(
 
                 if outcome == "pool_accuracy":
                     difference = diverse_accuracy - expert_accuracy
-                    pvalue = 0
+                    pvalue = np.nan
                     effect_size = np.nan
                     ci_low = np.nan
                     ci_high = np.nan
@@ -283,7 +277,7 @@ def produce_df_paired(
         data_x = np.array(df[x])
         data_y = np.array(df[y])
         statistics_result = wilcoxon_results(data_x, data_paired=data_y)
-        # statistics_result = perform_paired(file, "diverse", x, y)
+
         results.append(
             [
                 n_sources,
@@ -294,10 +288,7 @@ def produce_df_paired(
                 round(statistics_result["ci_low"], n_decimals),
                 round(statistics_result["ci_high"], n_decimals),
                 statistics_result["ties"],
-                # ratio = statistic_results["ratio"]
-                # round(statistics_result["difference"], n_decimals),
-                # round(statistics_result["p_value"], 4),
-                # round(statistics_result["statistic"]),
+                statistics_result["ratio"],
             ]
         )
     columns = [
@@ -309,5 +300,6 @@ def produce_df_paired(
         "ci_low",
         "ci_high",
         "ties",
+        "ratio",
     ]
     return pd.DataFrame(results, columns=columns)
