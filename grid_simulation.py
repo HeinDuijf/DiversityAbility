@@ -11,22 +11,25 @@ class GridSimulation:
         reliability_distribution_list: list,
         n_samples: int,
         heuristic_size: int = 5,
-        estimate_sample_size: int = None,
+        team_size: int = 9,
+        estimate_sample_size: int | None = None,
     ):
         self.team_types = team_types
         self.n_sources_list = n_sources_list
         self.reliability_distribution_list = reliability_distribution_list
         self.n_samples = n_samples
         self.heuristic_size = heuristic_size
+        self.team_size = team_size
         self.estimate_sample_size = estimate_sample_size
 
     def run(self):
         params_df = self.create_parameter_df()
         print(params_df)
-        for row in params_df.iterrows():
-            print(f"Running simulation {row[0]}")
-            params = row[1]
-            Simulation(**params).run()
+        for idx, params in params_df.iterrows():
+            print(f"Running simulation {idx}")
+            # convert to dict and turn NaN values into None
+            params_dict = params.where(pd.notnull(params), None).to_dict()
+            Simulation(**params_dict).run()
 
     def create_parameter_df(self):
         data = [
@@ -35,7 +38,7 @@ class GridSimulation:
                 "n_sources": n_sources,
                 "reliability_distribution": rel_dist,
                 "heuristic_size": self.heuristic_size,
-                "team_size": 9,
+                "team_size": self.team_size,
                 "n_samples": self.n_samples,
                 "estimate_sample_size": None,
             }
