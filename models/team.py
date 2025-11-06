@@ -48,7 +48,7 @@ class Team:
         for agent in self.members:
             agent.update_opinion()
 
-    def pool_accuracy(self):
+    def pool_accuracy(self) -> float:
         sources_accessed = np.unique(
             np.array(
                 [source for agent in self.members for source in agent.heuristic]
@@ -57,7 +57,7 @@ class Team:
         reliabilities = self.sources.reliabilities[sources_accessed]
         return calculate_competence(reliabilities)
 
-    def bounded_pool_accuracy(self):
+    def bounded_pool_accuracy(self) -> float:
         sources_accessed = np.array(
             [source for agent in self.members for source in agent.heuristic]
         ).flatten()
@@ -65,7 +65,9 @@ class Team:
         reliabilities = self.sources.reliabilities[sources_accessed]
         return calculate_competence_with_duplicates(reliabilities, weights)
 
-    def accuracy(self, estimate_sample_size: int | None = None) -> tuple:
+    def accuracy(
+        self, estimate_sample_size: int | None = None
+    ) -> tuple[float, float | None]:
         # 1. Estimate by sampling if estimate_sample_size is integer
         if isinstance(estimate_sample_size, int):
             outcomes = np.array([], dtype=float)
@@ -122,7 +124,7 @@ class Team:
                 ]
                 probability_subset = np.prod(probabilities_list)
                 accuracy += probability_subset / 2
-        return accuracy, None
+        return float(accuracy), None
 
     def average(self) -> float:
         return float(np.mean([agent.competence() for agent in self.members]))
