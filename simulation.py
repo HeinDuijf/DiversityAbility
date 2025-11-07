@@ -1,7 +1,9 @@
 import copy
 import itertools as it
 import time
-from concurrent.futures import ProcessPoolExecutor as Pool
+
+# from concurrent.futures import ProcessPoolExecutor as Pool
+from multiprocessing import Pool
 
 import pandas as pd
 import tqdm
@@ -44,6 +46,7 @@ class Simulation:
         self.estimate_sample_size = estimate_sample_size
 
     def run(self):
+        # Run simulations in parallel for accuracies and bounded pool accuracies
         with Pool() as pool:
             params, total = self.get_params()
             results_df = pd.DataFrame(
@@ -52,21 +55,40 @@ class Simulation:
                     total=total,
                 ),
             )
+        # Calculate pool accuracies separately for speed up
+        with Pool() as pool:
+            params = [[team_type, True] for team_type in self.team_types]
+            total = len(self.team_types)
+            results_pool = pd.DataFrame(
+                tqdm.tqdm(
+                    pool.starmap(self.team_simulate, params),
+                    total=total,
+                ),
+            )
+
+        for team_type in self.team_types:
+            team_pool_accuracy = results_pool[results_pool["team_type"] == team_type][
+                "pool_accuracy"
+            ].mean()
+            results_df.loc[results_df["team_type"] == team_type, "pool_accuracy"] = (
+                team_pool_accuracy
+            )
+
         results_df.to_csv(self.filename_csv)
 
     def get_params(self):
-        params_set = []
+        params = []
         total: int = 0
         if "expert" in self.team_types:
-            params_set = it.chain(params_set, ["expert"])
+            params = it.chain(params, ["expert"])
             total += 1
         for team_type in self.team_types:
             if "diverse" in team_type:
-                params_set = it.chain(params_set, it.repeat(team_type, self.n_samples))
+                params = it.chain(params, it.repeat(team_type, self.n_samples))
                 total += self.n_samples
-        return params_set, total
+        return params, total
 
-    def team_simulate(self, team_type: str):
+    def team_simulate(self, team_type: str, pool: bool = False):
         team_params = {
             "sources": copy.deepcopy(self.sources),
             "heuristic_size": self.heuristic_size,
@@ -115,7 +137,7 @@ class Simulation:
             "team_type": team_type,
             "accuracy": accuracy,
             "precision": precision,
-            "pool_accuracy": team.pool_accuracy(),
+            "pool_accuracy": team.pool_accuracy() if pool else None,
             "bounded_pool_accuracy": team.bounded_pool_accuracy(),
             "diversity": team.diversity(),
             "average": team.average(),

@@ -54,10 +54,8 @@ class GridSimulation:
 if __name__ == "__main__":
     GridSimulation(
         team_types=["expert", "diverse"],
-        n_sources_list=[21],
-        reliability_distribution_list=[
-            ("unidist", rel_range) for rel_range in [(0.45, 0.65)]
-        ],
-        n_samples=10,
+        n_sources_list=[13],
+        reliability_distribution_list=[("equi", rel_mean, 0.2) for rel_mean in [0.55]],
+        n_samples=5,
         estimate_sample_size=5,
     ).run()
