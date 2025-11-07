@@ -10,7 +10,7 @@ from models.team import Team
 from utils.basic_functions import calculate_diversity
 
 
-def generate_expert_team(sources: Sources, heuristic_size: int, team_size: int):
+def generate_expert_team(sources: Sources, heuristic_size: int | list, team_size: int):
     if not isinstance(heuristic_size, list):
         heuristic_size = [heuristic_size]
 
@@ -27,7 +27,7 @@ def generate_expert_team(sources: Sources, heuristic_size: int, team_size: int):
     return Team(best_agents, sources)
 
 
-def generate_diverse_team(sources: Sources, heuristic_size: int, team_size: int):
+def generate_diverse_team(sources: Sources, heuristic_size: int | list, team_size: int):
     if not isinstance(heuristic_size, list):
         heuristic_size = [heuristic_size]
 
@@ -38,7 +38,7 @@ def generate_diverse_team(sources: Sources, heuristic_size: int, team_size: int)
         Agent(id, heuristic, sources) for id, heuristic in enumerate(all_heuristics)
     ]
 
-    diversity_dict = {agent: 0 for agent in possible_agents}
+    diversity_dict: dict[Agent, float] = {agent: 0 for agent in possible_agents}
     diverse_group = []
     for _ in range(team_size):
         max_diversity = max(diversity_dict.values())
@@ -58,7 +58,7 @@ def generate_diverse_team(sources: Sources, heuristic_size: int, team_size: int)
     return Team(diverse_group, sources)
 
 
-def generate_random_team(sources: Sources, heuristic_size: int, team_size: int):
+def generate_random_team(sources: Sources, heuristic_size: int | list, team_size: int):
     if not isinstance(heuristic_size, list):
         heuristic_size = [heuristic_size]
 
@@ -74,7 +74,10 @@ def generate_random_team(sources: Sources, heuristic_size: int, team_size: int):
 
 
 def generate_qualified_diverse_team(
-    sources: Sources, heuristic_size: int, team_size: int, qualifying_percentile: float
+    sources: Sources,
+    heuristic_size: int | list,
+    team_size: int,
+    qualifying_percentile: float,
 ):
     if not isinstance(heuristic_size, list):
         heuristic_size = [heuristic_size]
@@ -92,7 +95,7 @@ def generate_qualified_diverse_team(
         agent for agent in possible_agents if agent.score >= qualifying_score
     ]
 
-    diversity_dict = {agent: 0 for agent in qualified_agents}
+    diversity_dict: dict[Agent, float] = {agent: 0 for agent in qualified_agents}
     diverse_group = []
     for _ in range(team_size):
         max_diversity = max(diversity_dict.values())
