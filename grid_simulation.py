@@ -10,7 +10,7 @@ class GridSimulation:
         n_sources_list: list,
         reliability_distribution_list: list,
         n_samples: int,
-        heuristic_size: int = 5,
+        heuristic_size: int | list = 5,
         team_size: int = 9,
         estimate_sample_size: int | None = None,
     ):
