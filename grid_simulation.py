@@ -1,4 +1,5 @@
 import pandas as pd
+from IPython.display import display
 
 from simulation import Simulation
 
@@ -24,11 +25,12 @@ class GridSimulation:
 
     def run(self):
         params_df = self.create_parameter_df()
-        print(params_df)
+        display(params_df)
+        total = len(params_df)
         for idx, params in params_df.iterrows():
-            print(f"Running simulation {idx}")
             # convert to dict and turn NaN values into None
             params_dict = params.where(pd.notnull(params), None).to_dict()
+            print(f"Running simulation {idx} out of {total}...")
             Simulation(**params_dict).run()
 
     def create_parameter_df(self):
