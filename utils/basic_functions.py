@@ -90,18 +90,42 @@ def calculate_competence(reliabilities: list[float] | np.ndarray) -> float:
 
 
 def calculate_competence_with_duplicates(
-    reliabilities: list | np.ndarray, weights: list | np.ndarray | None = None
-) -> float:
+    reliabilities: list | np.ndarray,
+    weights: list | np.ndarray | None = None,
+    estimate_sample_size: int | None = None,
+) -> tuple[float, float | None]:
     competence: float = 0
     n_sources = len(reliabilities)
     sources = np.array(range(len(reliabilities)))
     if n_sources == 0:
-        return 0
+        return 0, None
     if weights is None:
         weights = np.ones(n_sources)
+    if isinstance(weights, list):
+        weights = np.array(weights)
     total_weight = sum(weights)
     threshold = total_weight / 2
 
+    # 1. Estimate by sampling if estimate_sample_size is integer
+    if isinstance(estimate_sample_size, int):
+        outcomes = np.array([], dtype=float)
+        for _ in range(estimate_sample_size):
+            randoms = np.random.random(n_sources)
+            weight_sources_positive = weights[randoms < reliabilities].sum()
+            if weight_sources_positive > threshold:
+                outcomes = np.append(outcomes, cfg.vote_for_positive)
+            elif weight_sources_positive < threshold:
+                outcomes = np.append(outcomes, cfg.vote_for_negative)
+            else:
+                outcomes = np.append(
+                    outcomes, rd.choice([cfg.vote_for_positive, cfg.vote_for_negative])
+                )
+        estimated_accuracy, precision = calculate_accuracy_precision_proportion(
+            outcomes
+        )
+        return estimated_accuracy, precision
+
+    # 2. Else calculate
     for sources_positive in powerset(sources):
         sources_positive = np.array(sources_positive)
         weight_sources_positive = 0
@@ -120,4 +144,4 @@ def calculate_competence_with_duplicates(
                 competence += probability_subset
             elif weight_sources_positive == threshold:
                 competence += probability_subset / 2
-    return competence
+    return competence, None
