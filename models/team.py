@@ -57,13 +57,17 @@ class Team:
         reliabilities = self.sources.reliabilities[sources_accessed]
         return calculate_competence(reliabilities)
 
-    def bounded_pool_accuracy(self) -> float:
+    def bounded_pool_accuracy(
+        self, estimate_sample_size: int | None = None
+    ) -> tuple[float, float | None]:
         sources_accessed = np.array(
             [source for agent in self.members for source in agent.heuristic]
         ).flatten()
         sources_accessed, weights = np.unique(sources_accessed, return_counts=True)
         reliabilities = self.sources.reliabilities[sources_accessed]
-        return calculate_competence_with_duplicates(reliabilities, weights)
+        return calculate_competence_with_duplicates(
+            reliabilities, weights, estimate_sample_size
+        )
 
     def accuracy(
         self, estimate_sample_size: int | None = None
