@@ -1,12 +1,11 @@
 import copy
 import itertools as it
 import time
-
-# from concurrent.futures import ProcessPoolExecutor as Pool
-from multiprocessing import Pool
+from concurrent.futures import ProcessPoolExecutor as Pool
+from functools import partial
 
 import pandas as pd
-import tqdm
+from tqdm.auto import tqdm
 
 from models.generate_teams import (
     generate_diverse_team,
@@ -50,22 +49,26 @@ class Simulation:
         with Pool() as pool:
             params, total = self.get_params()
             results_df = pd.DataFrame(
-                tqdm.tqdm(
+                tqdm(
                     pool.map(self.team_simulate, params),
                     total=total,
-                ),
-            )
-        # Calculate pool accuracies separately for speed up
-        with Pool() as pool:
-            params = [[team_type, True] for team_type in self.team_types]
-            total = len(self.team_types)
-            results_pool = pd.DataFrame(
-                tqdm.tqdm(
-                    pool.starmap(self.team_simulate, params),
-                    total=total,
-                ),
+                    desc="Calculating/estimating accuracy and bounded pool accuracy",
+                )
             )
 
+        # Run simulations in parallel for pool accuracies
+        with Pool() as pool:
+            team_simulate_pool = partial(self.team_simulate, pool=True)
+            total = len(self.team_types)
+            results_pool = pd.DataFrame(
+                tqdm(
+                    pool.map(team_simulate_pool, self.team_types),
+                    total=total,
+                    desc="Calculating pool accuracy",
+                )
+            )
+
+        # Update pool accuracies in results_df
         for team_type in self.team_types:
             team_pool_accuracy = results_pool[results_pool["team_type"] == team_type][
                 "pool_accuracy"
@@ -74,6 +77,7 @@ class Simulation:
                 team_pool_accuracy
             )
 
+        # Save results to CSV
         results_df.to_csv(self.filename_csv)
 
     def get_params(self):
@@ -97,14 +101,21 @@ class Simulation:
         if team_type == "expert":
             team = generate_expert_team(**team_params)
             accuracy, precision = team.accuracy()
+            bounded_pool_accuracy, bounded_precision = team.bounded_pool_accuracy()
         elif team_type == "diverse":
             team = generate_diverse_team(**team_params)
             accuracy, precision = team.accuracy(
                 estimate_sample_size=self.estimate_sample_size
             )
+            bounded_pool_accuracy, bounded_precision = team.bounded_pool_accuracy(
+                estimate_sample_size=self.estimate_sample_size
+            )
         elif team_type == "random":
             team = generate_random_team(**team_params)
             accuracy, precision = team.accuracy(
+                estimate_sample_size=self.estimate_sample_size
+            )
+            bounded_pool_accuracy, bounded_precision = team.bounded_pool_accuracy(
                 estimate_sample_size=self.estimate_sample_size
             )
         elif "qualified_diverse" in team_type:
@@ -115,12 +126,12 @@ class Simulation:
             accuracy, precision = team.accuracy(
                 estimate_sample_size=self.estimate_sample_size
             )
+            bounded_pool_accuracy, bounded_precision = team.bounded_pool_accuracy(
+                estimate_sample_size=self.estimate_sample_size
+            )
         else:
             raise ValueError(f"Unknown team type: {team_type}")
 
-        # reliability_mean = (
-        #     self.reliability_distribution[1][1] - self.reliability_distribution[1][0]
-        # ) / 2 + self.reliability_distribution[1][0]
         heuristic_str = str(self.heuristic_size)  # type: ignore
         if isinstance(self.heuristic_size, list):
             heuristic_str = str(heuristic_str)[1:-1].replace(", ", "-")  # type: ignore
@@ -131,14 +142,13 @@ class Simulation:
             "heuristic_size": heuristic_str,
             "reliability_mean": self.reliability_distribution[1],
             "reliability_range": self.reliability_distribution[2],
-            # "sources_reliability_dist_str": sources_reliability_distribution_str,
             "n_samples": self.n_samples,
-            # "problem_difficulty": team.problem_difficulty(),
             "team_type": team_type,
             "accuracy": accuracy,
             "precision": precision,
             "pool_accuracy": team.pool_accuracy() if pool else None,
-            "bounded_pool_accuracy": team.bounded_pool_accuracy(),
+            "bounded_pool_accuracy": bounded_pool_accuracy,
+            "bounded_precision": bounded_precision,
             "diversity": team.diversity(),
             "average": team.average(),
         }
@@ -146,4 +156,4 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    Simulation(n_sources=11, n_samples=10, estimate_sample_size=5).run()
+    Simulation(n_sources=21, n_samples=2, estimate_sample_size=100).run()
