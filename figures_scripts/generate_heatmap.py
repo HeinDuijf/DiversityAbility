@@ -4,7 +4,7 @@ import seaborn as sns
 from data_analysis.statistics import produce_df_1samp
 
 
-def visualize_heatmap(
+def heatmap(
     outcome: str = "accuracy",
     diverse_team_type: str = "diverse",
     heuristic_size: int = 5,
@@ -20,6 +20,7 @@ def visualize_heatmap(
         heuristic_size=heuristic_size,
         perform_bca_ci=False,
     )
+    df = df[df["n_sources"] < 21]
     if measure == "absolute":
         df["effect_percent"] = 100 * df["difference"]
     if measure == "relative":
