@@ -12,6 +12,7 @@ def visualize_heatmap(
     mask: bool = True,
     colors: bool = False,
     show: bool = False,
+    filename: str | None = None,
 ):
     df = produce_df_1samp(
         outcome=outcome,
@@ -82,6 +83,7 @@ def visualize_heatmap(
             columns="n_sources",
             values="p_value",
         )
+        mask_df.fillna(value=0.0, inplace=True)
         mask_df = mask_df.astype(bool)
         mask_df.sort_index(inplace=True, ascending=False)
         fig = sns.heatmap(
@@ -94,15 +96,17 @@ def visualize_heatmap(
     fig.set_xlabel("Sources (#)")
     fig.set_ylabel("Reliability (mean)")
     plt.yticks(rotation=0)
-    # fig.set_title(f"Expert vs diverse teams:\n{outcome} (in %)\n")
+
+    if filename is None:
+        filename = f"figures/heatmap_{outcome}_{measure}"
     plt.savefig(
-        f"figures/heatmap_{outcome}_{measure}.eps",
+        f"{filename}.eps",
         bbox_inches="tight",
         dpi=800,
         format="eps",
     )
     plt.savefig(
-        f"figures/heatmap_{outcome}_{measure}.png",
+        f"{filename}.png",
         bbox_inches="tight",
         dpi=800,
     )
