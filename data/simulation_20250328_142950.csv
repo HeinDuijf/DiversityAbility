@@ -1,4 +1,4 @@
-,team_size,n_sources,heuristic_size,reliability_mean,reliability_range,n_samples,team_type,accuracy,precision,pool_accuracy,bounded_pool_accuracy,diversity,average
+,team_size,n_sources,heuristic_size,reliability_mean,reliability_range,n_samples,team_type,accuracy_opinion,precision_opinion,accuracy_evidence,accuracy_bounded,diversity,average
 0,9,17,5,0.55,0.2,10000,expert,0.7357918421052932,,0.7338870098638535,0.735638529753685,0.2777777777777775,0.7149423166232639
 1,9,17,5,0.55,0.2,10000,qualified_diverse_50,0.6709561978302714,,0.663742752499829,0.6785200545825352,0.7833333333333332,0.6060524319118924
 2,9,17,5,0.55,0.2,10000,qualified_diverse_50,0.6750336561393331,,0.663742752499829,0.6822095050395705,0.7833333333333329,0.608570018717448
