@@ -58,11 +58,11 @@ class Simulation:
 
         # Run simulations in parallel for evidence-based dynamics
         with Pool() as pool:
-            team_simulate_pool = partial(self.team_simulate, evidence=True)
+            team_simulate_evidence = partial(self.team_simulate, evidence=True)
             total = len(self.team_types)
             results_evidence = pd.DataFrame(
                 tqdm(
-                    pool.map(team_simulate_pool, self.team_types),
+                    pool.map(team_simulate_evidence, self.team_types),
                     total=total,
                     desc="Calculating accuracy evidence",
                 )
