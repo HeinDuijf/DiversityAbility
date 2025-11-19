@@ -122,7 +122,7 @@ if __name__ == "__main__":
         sources, heuristic_size=5, team_size=9, qualifying_percentile=90
     )
     mid = time.time()
-    print(f"Accuracy team: {team.accuracy()}")
+    print(f"Accuracy team: {team.accuracy_opinion()}")
     stop = time.time()
     print(f"Time to determine team = {mid - start}")
     print(f"Time to calculate accuracy = {stop - mid}")

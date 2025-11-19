@@ -129,7 +129,7 @@ def wilcoxon_results(
 
 
 def produce_df_1samp(
-    outcome: str = "accuracy",
+    outcome: str = "accuracy_opinion",
     diverse_team_type: str = "diverse",
     heuristic_size: int | list[int] = 5,
     team_size: int = 9,
@@ -143,8 +143,7 @@ def produce_df_1samp(
     diverse team performance against expert team performance.
 
     Args:
-        outcome: The performance metric to analyze (e.g., "accuracy"). Defaults to
-        "accuracy".
+        outcome: The performance metric to analyze. Defaults to "accuracy_opinion".
         diverse_team_type: The type of diverse team to analyze (e.g., "diverse").
         Defaults to "diverse".
         heuristic_size: The heuristic size used in the simulations. Can be an integer
@@ -206,7 +205,7 @@ def produce_df_1samp(
                 else:
                     error_reduction = 0
 
-                if outcome == "pool_accuracy":
+                if outcome == "accuracy_evidence":
                     difference = diverse_accuracy - expert_accuracy
                     pvalue = np.nan
                     effect_size = np.nan
@@ -260,7 +259,7 @@ def produce_df_1samp(
 
 
 def produce_df_paired(
-    x: str = "pool_accuracy", y="bounded_pool_accuracy", n_decimals: int = 3
+    x: str = "accuracy_evidence", y="accuracy_bounded", n_decimals: int = 3
 ):
     date = "202412"
     files = [

@@ -28,11 +28,11 @@ class Team:
 
     Methods
     -------
-        accuracy:
+        accuracy_opinion:
             Returns the accuracy for the opinion-based dynamics.
-        pool_accuracy:
+        accuracy_evidence:
             Returns the accuracy for the evidence-based dynamics.
-        bounded_pool_accuracy:
+        accuracy_bounded:
             Returns the accuracy for the boundedly rational evidence-based dynamics.
     """
 
@@ -48,7 +48,7 @@ class Team:
         for agent in self.members:
             agent.update_opinion()
 
-    def pool_accuracy(self) -> float:
+    def accuracy_evidence(self) -> float:
         sources_accessed = np.unique(
             np.array(
                 [source for agent in self.members for source in agent.heuristic]
@@ -57,7 +57,7 @@ class Team:
         reliabilities = self.sources.reliabilities[sources_accessed]
         return calculate_competence(reliabilities)
 
-    def bounded_pool_accuracy(
+    def accuracy_bounded(
         self, estimate_sample_size: int | None = None
     ) -> tuple[float, float | None]:
         sources_accessed = np.array(
@@ -69,7 +69,7 @@ class Team:
             reliabilities, weights, estimate_sample_size
         )
 
-    def accuracy(
+    def accuracy_opinion(
         self, estimate_sample_size: int | None = None
     ) -> tuple[float, float | None]:
         # 1. Estimate by sampling if estimate_sample_size is integer
