@@ -31,5 +31,7 @@ class Agent:
 
     def competence(self) -> float:
         return calculate_competence(
-            [self.sources.reliabilities[source] for source in self.heuristic]
+            [
+                self.sources.reliabilities[source] for source in self.heuristic
+            ]  # type: ignore
         )
