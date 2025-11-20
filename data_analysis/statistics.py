@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -55,13 +56,14 @@ def wilcoxon_results(
     intervals.
 
     Args:
-        data: 1D array of sample data.
+        data: 1D array of sample data. If provided a one-sample test is performed.
         median_hypothesis: Hypothesized median value to test against. Used for one-
         sample test.
         data_paired: 1D array of paired sample data. If provided, a paired test is
         performed.
         perform_bca_ci: Boolean determining whether to perform BCa for CIs, which
         is computationally costly.
+
     Returns:
         A dictionary with p-value, effect size, z-statistic, confidence intervals,
         presence of ties, and ratio (proportion of differences with the dominant sign).
@@ -85,6 +87,11 @@ def wilcoxon_results(
     data_diff = data_diff[data_diff != 0]
     n = len(data_diff)
     ties = True if len(data) != n else False
+
+    if ties:
+        warnings.warn(
+            "The Wilcoxon test may not be accurate because the data contains ties."
+        )
 
     # Step 3: Get absolute differences and ranks
     data_diff_abs = np.abs(data_diff)
