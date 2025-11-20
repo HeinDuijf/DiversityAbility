@@ -273,7 +273,7 @@ def produce_df_1samp(
 
 def produce_df_paired(
     x: str = "accuracy_evidence",
-    y="accuracy_bounded",
+    y: str = "accuracy_bounded",
     diverse_team_type: str = "diverse",
     heuristic_size: int | list[int] = 5,
     team_size: int = 9,
@@ -284,6 +284,34 @@ def produce_df_paired(
     date: str = "",
     perform_bca_ci: bool = True,
 ):
+    """Produces a DataFrame summarizing paired Wilcoxon test results comparing
+    diverse team performance for mechanisms x and y.
+
+    Note: Assumes simulation data files are in folder named 'data'.
+
+    Args:
+        x: The first deliberative mechanism. Defaults to 'accuracy_evidence'.
+        y: The second deliberative mechanism. Defaults to 'accuracy_bounded'.
+        diverse_team_type: The type of diverse team to analyze. Defaults to "diverse".
+        heuristic_size: The heuristic size used in the simulations. Can be an integer
+        or a list of integers. Defaults to 5.
+        team_size: The team size. Defaults to 9.
+        reliability_range: The range of the source reliability distribition. Defaults
+        to 0.2.
+        n_sources_list: The number of sources to consider. Defaults to [13, 17].
+        n_decimals: Number of decimal places to round the difference and confidence
+        intervals. Defaults to 3.
+        p_decimals: Number of decimal places to round the p-value. Defaults to 4.
+        date: Date string to filter simulation files. Defaults to empty string ''.
+        perform_bca_ci: Whether to compute BCa confidence intervals. Defaults to True.
+
+    Returns:
+        A pandas DataFrame containing the results of the one-sample Wilcoxon tests.
+        Column names are self-explanatory, except for
+        'ties': Indicates whether there were tied ranks in the test
+        'ratio': Represents the proportion of differences with the dominant sign.
+        A ratio of 0.8 means 80% of non-zero differences had the same sign.
+    """
     files = [
         file
         for file in os.listdir("data")
