@@ -141,24 +141,30 @@ def produce_df_1samp(
     heuristic_size: int | list[int] = 5,
     team_size: int = 9,
     reliability_range: float = 0.2,
+    n_sources_list: list[int] = [13, 17],
     n_decimals: int = 3,
     p_decimals: int = 4,
     date: str = "",
     perform_bca_ci: bool = True,
 ) -> pd.DataFrame:
-    """Produce a DataFrame summarizing one-sample Wilcoxon test results comparing
+    """Produces a DataFrame summarizing one-sample Wilcoxon test results comparing
     diverse team performance against expert team performance.
+
+    Note: Assumes simulation data files are in folder named 'data'
 
     Args:
         outcome: The performance metric to analyze. Defaults to "accuracy_opinion".
-        diverse_team_type: The type of diverse team to analyze (e.g., "diverse").
-        Defaults to "diverse".
+        diverse_team_type: The type of diverse team to analyze. Defaults to "diverse".
         heuristic_size: The heuristic size used in the simulations. Can be an integer
         or a list of integers. Defaults to 5.
+        team_size: The team size. Defaults to 9.
+        reliability_range: The range of the source reliability distribition. Defaults
+        to 0.2.
+        n_sources_list: The number of sources to consider. Defaults to [13, 17].
         n_decimals: Number of decimal places to round the difference and confidence
         intervals. Defaults to 3.
         p_decimals: Number of decimal places to round the p-value. Defaults to 4.
-        date: Date string to filter simulation files. Defaults to "202412".
+        date: Date string to filter simulation files. Defaults to empty string ''.
         perform_bca_ci: Whether to compute BCa confidence intervals. Defaults to True.
 
     Returns:
@@ -172,9 +178,7 @@ def produce_df_1samp(
     files = [
         file
         for file in os.listdir("data")
-        if file.split("_")[0] == "simulation"
-        and date in file.split("_")[1]
-        and "README" not in file
+        if file.split("_")[0] == "simulation" and date in file.split("_")[1]
     ]
     heuristic_str: str | int = heuristic_size  # type: ignore
     if isinstance(heuristic_size, list):
@@ -190,6 +194,8 @@ def produce_df_1samp(
         ):
             if diverse_team_type in df.team_type.values:
                 n_sources = df.at[0, "n_sources"]
+                if n_sources not in n_sources_list:
+                    continue
                 rel_mean = df.at[0, "reliability_mean"]
                 df_diverse = df[df["team_type"] == diverse_team_type]
                 # df_diverse = df_dummy.copy()
@@ -266,37 +272,59 @@ def produce_df_1samp(
 
 
 def produce_df_paired(
-    x: str = "accuracy_evidence", y="accuracy_bounded", n_decimals: int = 3
+    x: str = "accuracy_evidence",
+    y="accuracy_bounded",
+    diverse_team_type: str = "diverse",
+    heuristic_size: int | list[int] = 5,
+    team_size: int = 9,
+    reliability_range: float = 0.2,
+    n_sources_list: list[int] = [13, 17],
+    n_decimals: int = 3,
+    p_decimals: int = 4,
+    date: str = "",
+    perform_bca_ci: bool = True,
 ):
-    date = "202412"
     files = [
         file
         for file in os.listdir("data")
-        if file[:10] == "simulation" and date in file and "README" not in file
+        if file.split("_")[0] == "simulation" and date in file.split("_")[1]
     ]
+    heuristic_str: str | int = heuristic_size  # type: ignore
+    if isinstance(heuristic_size, list):
+        heuristic_str = str(heuristic_str)[1:-1].replace(", ", "-")  # type: ignore
+
     results = []
     for file in files:
         df = pd.read_csv(f"data/{file}")
-        n_sources = df.at[0, "n_sources"]
-        rel_mean = df.at[0, "reliability_mean"]
-        df = df[df["team_type"] == "diverse"]
-        data_x = np.array(df[x])
-        data_y = np.array(df[y])
-        statistics_result = wilcoxon_results(data_x, data_paired=data_y)
-
-        results.append(
-            [
-                n_sources,
-                rel_mean,
-                round(statistics_result["difference"], n_decimals),
-                statistics_result["p_value"],
-                statistics_result["effect_size"],
-                round(statistics_result["ci_low"], n_decimals),
-                round(statistics_result["ci_high"], n_decimals),
-                statistics_result["ties"],
-                statistics_result["ratio"],
-            ]
-        )
+        if (
+            heuristic_str in df.heuristic_size.values
+            and team_size in df.team_size.values
+            and reliability_range in df.reliability_range.values
+        ):
+            if diverse_team_type in df.team_type.values:
+                n_sources = df.at[0, "n_sources"]
+                if n_sources not in n_sources_list:
+                    continue
+                rel_mean = df.at[0, "reliability_mean"]
+                df_diverse = df[df["team_type"] == diverse_team_type]
+                data_x = np.array(df_diverse[x])
+                data_y = np.array(df_diverse[y])
+                statistics_result = wilcoxon_results(
+                    data_x, data_paired=data_y, perform_bca_ci=perform_bca_ci
+                )
+                results.append(
+                    [
+                        n_sources,
+                        rel_mean,
+                        round(statistics_result["difference"], n_decimals),
+                        round(statistics_result["p_value"], p_decimals),
+                        statistics_result["effect_size"],
+                        round(statistics_result["ci_low"], n_decimals),
+                        round(statistics_result["ci_high"], n_decimals),
+                        statistics_result["ties"],
+                        statistics_result["ratio"],
+                    ]
+                )
     columns = [
         "n_sources",
         "rel_mean",
@@ -309,3 +337,45 @@ def produce_df_paired(
         "ratio",
     ]
     return pd.DataFrame(results, columns=columns)
+
+    # date = "202412"
+    # files = [
+    #     file
+    #     for file in os.listdir("data")
+    #     if file[:10] == "simulation" and date in file and "README" not in file
+    # ]
+    # results = []
+    # for file in files:
+    #     df = pd.read_csv(f"data/{file}")
+    #     n_sources = df.at[0, "n_sources"]
+    #     rel_mean = df.at[0, "reliability_mean"]
+    #     df = df[df["team_type"] == "diverse"]
+    #     data_x = np.array(df[x])
+    #     data_y = np.array(df[y])
+    #     statistics_result = wilcoxon_results(data_x, data_paired=data_y)
+
+    #     results.append(
+    #         [
+    #             n_sources,
+    #             rel_mean,
+    #             round(statistics_result["difference"], n_decimals),
+    #             statistics_result["p_value"],
+    #             statistics_result["effect_size"],
+    #             round(statistics_result["ci_low"], n_decimals),
+    #             round(statistics_result["ci_high"], n_decimals),
+    #             statistics_result["ties"],
+    #             statistics_result["ratio"],
+    #         ]
+    #     )
+    # columns = [
+    #     "n_sources",
+    #     "rel_mean",
+    #     "difference",
+    #     "p_value",
+    #     "effect_size",
+    #     "ci_low",
+    #     "ci_high",
+    #     "ties",
+    #     "ratio",
+    # ]
+    # return pd.DataFrame(results, columns=columns)
