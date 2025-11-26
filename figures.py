@@ -1,6 +1,6 @@
-from figures_scripts.generate_heatmap import heatmap
-from figures_scripts.hongpage import figure_hong_page
-from figures_scripts.individual_scores import boxplot_individual_scores
+from figures.generate_heatmap import heatmap
+from figures.hongpage import figure_hong_page
+from figures.individual_scores import boxplot_individual_scores
 
 if __name__ == "__main__":
     colors = False
