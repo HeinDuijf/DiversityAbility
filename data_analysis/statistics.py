@@ -1,70 +1,34 @@
 import os
 import warnings
+from functools import partial
 
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
-from joblib import Parallel, delayed
-from scipy.stats import norm
-
-
-def bca_ci(
-    data, stat_func=np.median, n_boot=20_000, alpha=0.05, n_jobs=-1, random_state=37
-):
-    """Compute Bias-Corrected and Accelerated (BCa) bootstrap confidence intervals."""
-    rng = np.random.default_rng(random_state)
-    n = len(data)
-    obs_stat = stat_func(data)
-
-    # Bootstrap resampling
-    def one_rep(_):
-        sample = rng.choice(data, size=n, replace=True)
-        return stat_func(sample)
-
-    boot_stats = np.array(
-        Parallel(n_jobs=n_jobs)(delayed(one_rep)(i) for i in range(n_boot))
-    )
-
-    # Bias correction
-    prop = np.clip((boot_stats < obs_stat).mean(), 1e-10, 1 - 1e-10)
-    z0 = norm.ppf(prop)
-
-    # Jackknife acceleration
-    jack_stats = np.array([stat_func(np.delete(data, i)) for i in range(n)])
-    jack_mean = jack_stats.mean()
-    num = np.sum((jack_mean - jack_stats) ** 3)
-    den = 6.0 * (np.sum((jack_mean - jack_stats) ** 2) ** 1.5)
-    a = num / den if den != 0 else 0.0
-
-    # Adjusted percentiles
-    z_alpha_low = norm.ppf(alpha / 2)
-    z_alpha_high = norm.ppf(1 - alpha / 2)
-    adj_low = norm.cdf(z0 + (z0 + z_alpha_low) / (1 - a * (z0 + z_alpha_low)))
-    adj_high = norm.cdf(z0 + (z0 + z_alpha_high) / (1 - a * (z0 + z_alpha_high)))
-
-    ci_low, ci_high = np.quantile(boot_stats, [adj_low, adj_high])
-    return ci_low, ci_high
+from scipy.stats import bootstrap
 
 
 def wilcoxon_results(
     data: np.ndarray,
     data_paired: np.ndarray | None = None,
     median_hypothesis: float | None = None,
-    perform_bca_ci: bool = True,
+    compute_ci: bool = True,
 ):
-    """Perform Wilcoxon signed-rank test and compute effect size and BCa confidence
+    """Perform Wilcoxon signed-rank test, compute effect size and confidence
     intervals.
 
-    Args:
+    Parameters
+    ----------
         data: 1D array of sample data. If provided a one-sample test is performed.
         median_hypothesis: Hypothesized median value to test against. Used for one-
-        sample test.
+        sample test. Defaults to None.
         data_paired: 1D array of paired sample data. If provided, a paired test is
-        performed.
-        perform_bca_ci: Boolean determining whether to perform BCa for CIs, which
-        is computationally costly.
+        performed. Defaults to None.
+        compute_ci: Boolean determining whether to compute the confidence intervals,
+        which is computationally costly. Defaults to True.
 
-    Returns:
+    Returns
+    -------
         A dictionary with p-value, effect size, z-statistic, confidence intervals,
         presence of ties, and ratio (proportion of differences with the dominant sign).
     """
@@ -113,11 +77,21 @@ def wilcoxon_results(
     # sample size)
     Z = abs((W - E_W) / np.sqrt(Var_W))
 
-    # Step 8: Compute bias-corrected and accelerated (BCa) confidence intervals (CI)
-    # for the median of differences
+    # Step 8: Compute confidence intervals using bootstrap method
+    bootstrap_ci = partial(
+        bootstrap,
+        statistic=np.median,
+        vectorized=False,
+        n_resamples=20000,
+        method="percentile",
+        confidence_level=0.95,
+        rng=np.random.default_rng(),
+    )
     ci_low, ci_high = np.nan, np.nan
-    if perform_bca_ci:
-        ci_low, ci_high = bca_ci(data_diff)
+    if compute_ci:
+        bootstrap_ci_result = bootstrap_ci((data_diff,))
+        ci_low = bootstrap_ci_result.confidence_interval.low
+        ci_high = bootstrap_ci_result.confidence_interval.high
 
     # Step 9: Compute ratio of positive differences
     ratio_pos = data_diff[data_diff > 0].size / n
@@ -145,7 +119,7 @@ def produce_df_1samp(
     n_decimals: int = 3,
     p_decimals: int = 4,
     date: str = "",
-    perform_bca_ci: bool = True,
+    compute_ci: bool = True,
 ) -> pd.DataFrame:
     """Produces a DataFrame summarizing one-sample Wilcoxon test results comparing
     diverse team performance against expert team performance.
@@ -165,7 +139,8 @@ def produce_df_1samp(
         intervals. Defaults to 3.
         p_decimals: Number of decimal places to round the p-value. Defaults to 4.
         date: Date string to filter simulation files. Defaults to empty string ''.
-        perform_bca_ci: Whether to compute BCa confidence intervals. Defaults to True.
+        compute_ci: Boolean determining whether to compute the confidence intervals,
+        which is computationally costly. Defaults to True.
 
     Returns:
         A pandas DataFrame containing the results of the one-sample Wilcoxon tests.
@@ -198,7 +173,6 @@ def produce_df_1samp(
                     continue
                 rel_mean = df.at[0, "reliability_mean"]
                 df_diverse = df[df["team_type"] == diverse_team_type]
-                # df_diverse = df_dummy.copy()
                 diverse_accuracy = df_diverse[outcome].median()
                 expert_accuracy = df[df["team_type"] == "expert"][outcome].median()
 
@@ -231,7 +205,7 @@ def produce_df_1samp(
                     statistic_results = wilcoxon_results(
                         np.array(df_diverse[outcome]),
                         median_hypothesis=expert_accuracy,
-                        perform_bca_ci=perform_bca_ci,
+                        compute_ci=compute_ci,
                     )
                     difference = statistic_results["difference"]
                     pvalue = statistic_results["p_value"]
@@ -282,7 +256,7 @@ def produce_df_paired(
     n_decimals: int = 3,
     p_decimals: int = 4,
     date: str = "",
-    perform_bca_ci: bool = True,
+    compute_ci: bool = True,
 ):
     """Produces a DataFrame summarizing paired Wilcoxon test results comparing
     diverse team performance for mechanisms x and y.
@@ -303,7 +277,8 @@ def produce_df_paired(
         intervals. Defaults to 3.
         p_decimals: Number of decimal places to round the p-value. Defaults to 4.
         date: Date string to filter simulation files. Defaults to empty string ''.
-        perform_bca_ci: Whether to compute BCa confidence intervals. Defaults to True.
+        compute_ci: Boolean determining whether to compute the confidence intervals,
+        which is computationally costly. Defaults to True.
 
     Returns:
         A pandas DataFrame containing the results of the one-sample Wilcoxon tests.
@@ -338,7 +313,7 @@ def produce_df_paired(
                 data_x = np.array(df_diverse[x])
                 data_y = np.array(df_diverse[y])
                 statistics_result = wilcoxon_results(
-                    data_x, data_paired=data_y, perform_bca_ci=perform_bca_ci
+                    data_x, data_paired=data_y, compute_ci=compute_ci
                 )
                 results.append(
                     [
@@ -365,45 +340,3 @@ def produce_df_paired(
         "ratio",
     ]
     return pd.DataFrame(results, columns=columns)
-
-    # date = "202412"
-    # files = [
-    #     file
-    #     for file in os.listdir("data")
-    #     if file[:10] == "simulation" and date in file and "README" not in file
-    # ]
-    # results = []
-    # for file in files:
-    #     df = pd.read_csv(f"data/{file}")
-    #     n_sources = df.at[0, "n_sources"]
-    #     rel_mean = df.at[0, "reliability_mean"]
-    #     df = df[df["team_type"] == "diverse"]
-    #     data_x = np.array(df[x])
-    #     data_y = np.array(df[y])
-    #     statistics_result = wilcoxon_results(data_x, data_paired=data_y)
-
-    #     results.append(
-    #         [
-    #             n_sources,
-    #             rel_mean,
-    #             round(statistics_result["difference"], n_decimals),
-    #             statistics_result["p_value"],
-    #             statistics_result["effect_size"],
-    #             round(statistics_result["ci_low"], n_decimals),
-    #             round(statistics_result["ci_high"], n_decimals),
-    #             statistics_result["ties"],
-    #             statistics_result["ratio"],
-    #         ]
-    #     )
-    # columns = [
-    #     "n_sources",
-    #     "rel_mean",
-    #     "difference",
-    #     "p_value",
-    #     "effect_size",
-    #     "ci_low",
-    #     "ci_high",
-    #     "ties",
-    #     "ratio",
-    # ]
-    # return pd.DataFrame(results, columns=columns)
