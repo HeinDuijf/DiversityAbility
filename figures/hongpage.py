@@ -51,10 +51,10 @@ def figure_hong_page():
 
     plt.axis("off")
     axis = plt.gca()
-    axis.set_xlim([1.2 * x for x in axis.get_xlim()])
-    axis.set_ylim([1.2 * y for y in axis.get_ylim()])
+    axis.set_xlim([1.2 * x for x in axis.get_xlim()])  # type: ignore
+    axis.set_ylim([1.2 * y for y in axis.get_ylim()])  # type: ignore
     plt.tight_layout()
-    plt.savefig("figures/hongpage.eps", dpi=800, format="eps")
-    plt.savefig("figures/hongpage.png", dpi=800)
+    plt.savefig("figures/images/hongpage.eps", dpi=800, format="eps")
+    plt.savefig("figures/images/hongpage.png", dpi=800)
     plt.close()
     # plt.show()

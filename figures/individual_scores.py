@@ -35,9 +35,12 @@ def boxplot_individual_scores(n_sources: int = 13, heuristic_size: int = 5, show
         plt.show()
 
     plt.savefig(
-        "figures/individual_scores.eps", bbox_inches="tight", dpi=800, format="eps"
+        "../figures//images/individual_scores.eps",
+        bbox_inches="tight",
+        dpi=800,
+        format="eps",
     )
-    plt.savefig("figures/individual_scores.png", bbox_inches="tight", dpi=800)
+    plt.savefig("figures/images/individual_scores.png", bbox_inches="tight", dpi=800)
     plt.close()
 
 
@@ -53,22 +56,63 @@ def df_individual_scores(n_sources: int = 13, heuristic_size: int = 5):
             team = generate_expert_team(sources, heuristic_size, n_possible_heuristics)
             data = np.array([agent.score for agent in team.members])
             data = np.array([agent.score for agent in team.members])
-            data_mean = data.mean()
-            data_std = data.std()
-            data_max = data.max()
-            data_min = data.min()
+            data_mean = data.mean() * 100
+            data_std = data.std() * 100
+            data_max = data.max() * 100
+            data_min = data.min() * 100
+            data_5 = np.percentile(data, 5) * 100
+            data_25 = np.percentile(data, 25) * 100
+            data_75 = np.percentile(data, 75) * 100
+            data_95 = np.percentile(data, 95) * 100
             data_scores = np.concatenate(
                 [
                     data_scores,
-                    [n_sources, rel_mean, data_mean, data_std, data_max, data_min],
+                    [
+                        f"{n_sources:.0f}",
+                        f"{rel_mean * 100:.0f}",
+                        f"{data_mean:.1f}",
+                        f"{data_min:.1f}",
+                        f"{data_5:.1f}",
+                        f"{data_25:.1f}",
+                        f"{data_75:.1f}",
+                        f"{data_95:.1f}",
+                        f"{data_max:.1f}",
+                        f"{data_std:.1f}",
+                    ],
                 ]
             )
 
-    data_scores = np.reshape(data_scores, (10, 6))
+    data_scores = np.reshape(data_scores, (10, 10))
     scores_df = pd.DataFrame(
-        data_scores, columns=["n_sources", "rel_mean", "mean", "std", "max", "min"]
+        data_scores,
+        columns=[
+            "n_sources",
+            "rel_mean",
+            "mean",
+            "min",
+            "5th_pct",
+            "25th_pct",
+            "75th_pct",
+            "95th_pct",
+            "max",
+            "std",
+        ],
     )
-    scores_df.sort_values("rel_mean")
+    scores_df.style.format(
+        subset=[
+            "mean",
+            "std",
+            "max",
+            "min",
+            "5th_pct",
+            "25th_pct",
+            "75th_pct",
+            "95th_pct",
+        ],
+        precision=3,
+    )
+    scores_df.style.format(subset=["n_sources"], precision=0)
+    scores_df.sort_values("rel_mean", inplace=True)
     return scores_df
 
 

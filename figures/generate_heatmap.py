@@ -20,7 +20,7 @@ def heatmap(
         diverse_team_type=diverse_team_type,
         heuristic_size=heuristic_size,
         n_sources_list=n_sources_list,
-        perform_bca_ci=False,
+        compute_ci=False,
     )
     if measure == "absolute":
         df["effect_percent"] = 100 * df["difference"]
@@ -101,7 +101,7 @@ def heatmap(
     plt.yticks(rotation=0)
 
     if filename is None:
-        filename = f"figures/heatmap_{outcome}_{measure}"
+        filename = f"figures/images/heatmap_{outcome}_{measure}"
     plt.savefig(
         f"{filename}.eps",
         bbox_inches="tight",
