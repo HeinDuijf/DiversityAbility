@@ -86,7 +86,10 @@ def heatmap(
         columns="n_sources",
         values="p_value",
     )
-    not_sig = pvalue_df > 0.001
+    if outcome == "accuracy_evidence":
+        not_sig = df_heatmap == 0.0
+    else:
+        not_sig = pvalue_df > 0.001
     annot_df[not_sig] = ""
 
     heatmap_params["annot"] = annot_df
