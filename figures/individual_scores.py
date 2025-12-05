@@ -35,12 +35,12 @@ def boxplot_individual_scores(n_sources: int = 13, heuristic_size: int = 5, show
         plt.show()
 
     plt.savefig(
-        "../figures//images/individual_scores.eps",
+        "./figures/images/individual_scores.eps",
         bbox_inches="tight",
         dpi=800,
         format="eps",
     )
-    plt.savefig("figures/images/individual_scores.png", bbox_inches="tight", dpi=800)
+    plt.savefig("./figures/images/individual_scores.png", bbox_inches="tight", dpi=800)
     plt.close()
 
 
