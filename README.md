@@ -34,7 +34,7 @@ pip install -r requirements.txt
 [Jupyter Notebook](NotebookWalkthrough.ipynb) (or the [GitHub page](https://heinduijf.github.io/DiversityAbility/)), which includes some network 
 visualizations by running
 ```commandline
-jupyter-notebook NotebookWalkthrough.ipynb
+jupyter lab NotebookWalkthrough.ipynb
 ```
 Running the cells in the notebook will create several html files in the folder `www` with 
 visualizations of agent-based models.
@@ -47,7 +47,7 @@ which will create several csv files in the folder `data`.
 
 3. To check out the data analysis, you can run this [Jupyter Notebook](DataAnalysis.ipynb) by running
 ```commandline
-jupyter-notebook DataAnalysis.ipynb
+jupyter lab DataAnalysis.ipynb
 ```
 
 ## 3. Organization of the repository
