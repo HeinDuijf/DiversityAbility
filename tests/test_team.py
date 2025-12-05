@@ -29,7 +29,7 @@ def test_team():
     team = Team(**params)
 
     check_team_attributes(team, params)
-    accuracy, _ = team.accuracy()
+    accuracy, _ = team.accuracy_opinion()
     assert team.aggregate() == cfg.vote_for_positive
-    assert accuracy < team.pool_accuracy()
-    assert team.pool_accuracy() > team.bounded_pool_accuracy()
+    assert accuracy < team.accuracy_evidence()
+    assert team.accuracy_evidence() > team.accuracy_bounded()

@@ -28,11 +28,11 @@ class Team:
 
     Methods
     -------
-        accuracy:
+        accuracy_opinion:
             Returns the accuracy for the opinion-based dynamics.
-        pool_accuracy:
+        accuracy_evidence:
             Returns the accuracy for the evidence-based dynamics.
-        bounded_pool_accuracy:
+        accuracy_bounded:
             Returns the accuracy for the boundedly rational evidence-based dynamics.
     """
 
@@ -48,22 +48,30 @@ class Team:
         for agent in self.members:
             agent.update_opinion()
 
-    def pool_accuracy(self):
+    def accuracy_evidence(self) -> float:
         sources_accessed = np.unique(
-            np.array([agent.heuristic for agent in self.members]).flatten()
+            np.array(
+                [source for agent in self.members for source in agent.heuristic]
+            ).flatten()
         )
         reliabilities = self.sources.reliabilities[sources_accessed]
         return calculate_competence(reliabilities)
 
-    def bounded_pool_accuracy(self):
+    def accuracy_bounded(
+        self, estimate_sample_size: int | None = None
+    ) -> tuple[float, float | None]:
         sources_accessed = np.array(
-            [agent.heuristic for agent in self.members]
+            [source for agent in self.members for source in agent.heuristic]
         ).flatten()
         sources_accessed, weights = np.unique(sources_accessed, return_counts=True)
         reliabilities = self.sources.reliabilities[sources_accessed]
-        return calculate_competence_with_duplicates(reliabilities, weights)
+        return calculate_competence_with_duplicates(
+            reliabilities, weights, estimate_sample_size
+        )
 
-    def accuracy(self, estimate_sample_size: int = None) -> tuple:
+    def accuracy_opinion(
+        self, estimate_sample_size: int | None = None
+    ) -> tuple[float, float | None]:
         # 1. Estimate by sampling if estimate_sample_size is integer
         if isinstance(estimate_sample_size, int):
             outcomes = np.array([], dtype=float)
@@ -78,8 +86,14 @@ class Team:
             return estimated_accuracy, precision
 
         # 2. Else calculate
-        heuristics = np.array([agent.heuristic for agent in self.members])
-        sources_relevant = np.unique(heuristics.flatten())
+        sources_relevant = np.unique(
+            np.array(
+                [source for agent in self.members for source in agent.heuristic]
+            ).flatten()
+        )
+        # sources_relevant = np.unique(sources_relevant.flatten())
+        # heuristics = [agent.heuristic for agent in self.members]
+        # sources_relevant = np.unique(heuristics.flatten())
 
         accuracy = 0
         for sources_positive in powerset(sources_relevant):
@@ -114,10 +128,10 @@ class Team:
                 ]
                 probability_subset = np.prod(probabilities_list)
                 accuracy += probability_subset / 2
-        return accuracy, None
+        return float(accuracy), None
 
     def average(self) -> float:
-        return np.mean([agent.competence() for agent in self.members])
+        return float(np.mean([agent.competence() for agent in self.members]))
 
     def diversity(self) -> float:
         diversity_scores = [

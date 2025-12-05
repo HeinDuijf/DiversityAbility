@@ -2,13 +2,15 @@ import copy
 import itertools as it
 import time
 from concurrent.futures import ProcessPoolExecutor as Pool
+from functools import partial
 
 import pandas as pd
-import tqdm
+from tqdm.auto import tqdm
 
 from models.generate_teams import (
     generate_diverse_team,
     generate_expert_team,
+    generate_qualified_diverse_team,
     generate_random_team,
 )
 from models.sources import Sources
@@ -17,14 +19,14 @@ from models.sources import Sources
 class Simulation:
     def __init__(
         self,
-        filename_csv: str = None,
+        filename_csv: str | None = None,
         team_types: list = ["expert", "diverse"],
         n_sources: int = 13,
-        reliability_distribution=("equidist", (0.5, 0.7)),
+        reliability_distribution=("equidist", 0.6, 0.2),
         heuristic_size: int = 5,
         team_size: int = 9,
         n_samples: int = 10**3,
-        estimate_sample_size: int = None,
+        estimate_sample_size: int | None = None,
     ):
         time_str = time.strftime("%Y%m%d_%H%M%S")
         self.filename_csv = filename_csv
@@ -43,22 +45,55 @@ class Simulation:
         self.estimate_sample_size = estimate_sample_size
 
     def run(self):
+        # Run simulations in parallel for opinion-based and bounded dynamics
         with Pool() as pool:
+            params, total = self.get_params()
             results_df = pd.DataFrame(
-                tqdm.tqdm(
-                    pool.map(self.team_simulate, self.params()),
-                    total=self.n_samples + 1,
-                ),
+                tqdm(
+                    pool.map(self.team_simulate, params),
+                    total=total,
+                    desc="Calculating/estimating accuracy opinion and bounded",
+                )
             )
+
+        # Run simulations in parallel for evidence-based dynamics
+        with Pool() as pool:
+            team_simulate_evidence = partial(self.team_simulate, evidence=True)
+            total = len(self.team_types)
+            results_evidence = pd.DataFrame(
+                tqdm(
+                    pool.map(team_simulate_evidence, self.team_types),
+                    total=total,
+                    desc="Calculating accuracy evidence",
+                )
+            )
+
+        # Update accuracies evidence in results_df
+        for team_type in self.team_types:
+            team_accuracy_evidence = results_evidence[
+                results_evidence["team_type"] == team_type
+            ]["accuracy_evidence"].mean()
+
+            results_df.loc[
+                results_df["team_type"] == team_type, "accuracy_evidence"
+            ] = team_accuracy_evidence
+
+        # Save results to CSV
         results_df.to_csv(self.filename_csv)
 
-    def params(self):
-        expert_params = ["expert"]
-        diverse_params = it.repeat("diverse", self.n_samples)
-        # random_params = it.repeat("random", self.n_samples)
-        return it.chain(expert_params, diverse_params)
+    def get_params(self):
+        params = []
+        total: int = 0
+        if "expert" in self.team_types:
+            params = it.chain(params, ["expert"])
+            total += 1
+        for team_type in self.team_types:
+            if "diverse" in team_type:
+                params = it.chain(params, it.repeat(team_type, self.n_samples))
+                total += self.n_samples
+        return params, total
 
-    def team_simulate(self, team_type: str):
+    def team_simulate(self, team_type: str, evidence: bool = False):
         team_params = {
             "sources": copy.deepcopy(self.sources),
             "heuristic_size": self.heuristic_size,
@@ -66,38 +101,55 @@ class Simulation:
         }
         if team_type == "expert":
             team = generate_expert_team(**team_params)
-            accuracy, precision = team.accuracy()
+            accuracy_opinion, precision_opinion = team.accuracy_opinion()
+            accuracy_bounded, precision_bounded = team.accuracy_bounded()
         elif team_type == "diverse":
             team = generate_diverse_team(**team_params)
-            accuracy, precision = team.accuracy(
+            accuracy_opinion, precision_opinion = team.accuracy_opinion(
+                estimate_sample_size=self.estimate_sample_size
+            )
+            accuracy_bounded, precision_bounded = team.accuracy_bounded(
                 estimate_sample_size=self.estimate_sample_size
             )
         elif team_type == "random":
             team = generate_random_team(**team_params)
-            accuracy, precision = team.accuracy(
+            accuracy_opinion, precision_opinion = team.accuracy_opinion(
                 estimate_sample_size=self.estimate_sample_size
             )
+            accuracy_bounded, precision_bounded = team.accuracy_bounded(
+                estimate_sample_size=self.estimate_sample_size
+            )
+        elif "qualified_diverse" in team_type:
+            qualified_percentile = float(team_type.split("_")[-1])
+            team = generate_qualified_diverse_team(
+                **team_params, qualifying_percentile=qualified_percentile
+            )
+            accuracy_opinion, precision_opinion = team.accuracy_opinion(
+                estimate_sample_size=self.estimate_sample_size
+            )
+            accuracy_bounded, precision_bounded = team.accuracy_bounded(
+                estimate_sample_size=self.estimate_sample_size
+            )
+        else:
+            raise ValueError(f"Unknown team type: {team_type}")
 
-        reliability_mean = (
-            self.reliability_distribution[1][1] - self.reliability_distribution[1][0]
-        ) / 2 + self.reliability_distribution[1][0]
-        # sources_reliability_distribution_str = str(
-        #     self.sources_reliability_distribution
-        # ).replace(",", " to")
+        heuristic_str = str(self.heuristic_size)  # type: ignore
+        if isinstance(self.heuristic_size, list):
+            heuristic_str = str(heuristic_str)[1:-1].replace(", ", "-")  # type: ignore
 
         results_dict = {
             "team_size": self.team_size,
             "n_sources": self.n_sources,
-            "heuristic_size": self.heuristic_size,
-            "reliability_mean": reliability_mean,
-            # "sources_reliability_dist_str": sources_reliability_distribution_str,
+            "heuristic_size": heuristic_str,
+            "reliability_mean": self.reliability_distribution[1],
+            "reliability_range": self.reliability_distribution[2],
             "n_samples": self.n_samples,
-            # "problem_difficulty": team.problem_difficulty(),
             "team_type": team_type,
-            "accuracy": accuracy,
-            "precision": precision,
-            "pool_accuracy": team.pool_accuracy(),
-            "bounded_pool_accuracy": team.bounded_pool_accuracy(),
+            "accuracy_opinion": accuracy_opinion,
+            "precision_opinion": precision_opinion,
+            "accuracy_evidence": team.accuracy_evidence() if evidence else None,
+            "accuracy_bounded": accuracy_bounded,
+            "precision_bouded": precision_bounded,
             "diversity": team.diversity(),
             "average": team.average(),
         }
@@ -105,4 +157,4 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    Simulation(n_sources=11, n_samples=10, estimate_sample_size=5).run()
+    Simulation(n_sources=21, n_samples=2, estimate_sample_size=100).run()

@@ -23,7 +23,7 @@ def majority_winner(values: list, return_value: bool = True):
     return options
 
 
-def powerset(iterable):
+def powerset(iterable: np.ndarray) -> it.chain:
     """Copied from http://docs.python.org/2.7/library/itertools.html#recipes
     powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"""
     s = np.array(iterable)
@@ -31,7 +31,7 @@ def powerset(iterable):
 
 
 def calculate_accuracy_precision_proportion(
-    list_of_items: list, alpha: float = 0.05
+    list_of_items: list | np.ndarray, alpha: float = 0.05
 ) -> tuple:
     """Basic function to calculate the accuracy and precision of a list of items.
     :param list_of_items
@@ -48,10 +48,10 @@ def calculate_accuracy_precision_proportion(
     if isinstance(list_of_items, np.ndarray):
         number_of_success = np.count_nonzero(list_of_items == cfg.vote_for_positive)
     accuracy = number_of_success / number_of_items
-    confidence_interval = proportion_confint(
+    confidence_interval_low, confidence_interval_high = proportion_confint(
         number_of_success, number_of_items, alpha=alpha
     )
-    precision = max(confidence_interval) - min(confidence_interval)
+    precision = confidence_interval_high - confidence_interval_low
     return accuracy, precision
 
 
@@ -64,10 +64,10 @@ def calculate_diversity(list1: list, list2: list) -> float:
     return diversity
 
 
-def calculate_competence(reliabilities: list) -> float:
+def calculate_competence(reliabilities: list[float] | np.ndarray) -> float:
     competence: float = 0
     number_of_sources = len(reliabilities)
-    sources = range(len(reliabilities))
+    sources = np.array(range(len(reliabilities)))
     if number_of_sources == 0:
         return 0
     threshold = number_of_sources / 2
@@ -81,7 +81,7 @@ def calculate_competence(reliabilities: list) -> float:
                 for source in sources
                 if source not in sources_positive
             ]
-            probability_subset = np.prod(probabilities_list)
+            probability_subset: float = float(np.prod(probabilities_list))
             if len(sources_positive) > threshold:
                 competence += probability_subset
             elif len(sources_positive) == threshold:
@@ -90,18 +90,42 @@ def calculate_competence(reliabilities: list) -> float:
 
 
 def calculate_competence_with_duplicates(
-    reliabilities: list, weights: list = None
-) -> float:
+    reliabilities: list | np.ndarray,
+    weights: list | np.ndarray | None = None,
+    estimate_sample_size: int | None = None,
+) -> tuple[float, float | None]:
     competence: float = 0
     n_sources = len(reliabilities)
-    sources = range(len(reliabilities))
+    sources = np.array(range(len(reliabilities)))
     if n_sources == 0:
-        return 0
+        return 0, None
     if weights is None:
         weights = np.ones(n_sources)
+    if isinstance(weights, list):
+        weights = np.array(weights)
     total_weight = sum(weights)
     threshold = total_weight / 2
 
+    # 1. Estimate by sampling if estimate_sample_size is integer
+    if isinstance(estimate_sample_size, int):
+        outcomes = np.array([], dtype=float)
+        for _ in range(estimate_sample_size):
+            randoms = np.random.random(n_sources)
+            weight_sources_positive = weights[randoms < reliabilities].sum()
+            if weight_sources_positive > threshold:
+                outcomes = np.append(outcomes, cfg.vote_for_positive)
+            elif weight_sources_positive < threshold:
+                outcomes = np.append(outcomes, cfg.vote_for_negative)
+            else:
+                outcomes = np.append(
+                    outcomes, rd.choice([cfg.vote_for_positive, cfg.vote_for_negative])
+                )
+        estimated_accuracy, precision = calculate_accuracy_precision_proportion(
+            outcomes
+        )
+        return estimated_accuracy, precision
+
+    # 2. Else calculate
     for sources_positive in powerset(sources):
         sources_positive = np.array(sources_positive)
         weight_sources_positive = 0
@@ -115,9 +139,9 @@ def calculate_competence_with_duplicates(
                 for source in sources
                 if source not in sources_positive
             ]
-            probability_subset = np.prod(probabilities_list)
+            probability_subset: float = float(np.prod(probabilities_list))
             if weight_sources_positive > threshold:
                 competence += probability_subset
             elif weight_sources_positive == threshold:
                 competence += probability_subset / 2
-    return competence
+    return competence, None

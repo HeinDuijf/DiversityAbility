@@ -36,7 +36,7 @@ visualizations by running
 ```commandline
 jupyter-notebook NotebookWalkthrough.ipynb
 ```
-Running the notebook will create several html files in the folder `www` with 
+Running the cells in the notebook will create several html files in the folder `www` with 
 visualizations of agent-based models.
 
 2. To run the simulations and generate the data, run the script
@@ -50,34 +50,45 @@ which will create several csv files in the folder `data`.
 jupyter-notebook DataAnalysis.ipynb
 ```
 
-## 3. Organization of the project
+## 3. Organization of the repository
 
-### Illustration of the agent-based model: `NotebookWalkthrough.ipynb`
-The Jupyter Notebook walks you through the stages of the agent-based model `Team` using some network visualizations. To minimalize the amount of code in the notebook, some scripts are stored in `utils/notebook.py`, which is run in one of the initial notebook cells. 
+### Illustration of the agent-based model: notebook `NotebookWalkthrough.ipynb` and folder `www` (also see the [GitHub page](https://heinduijf.github.io/DiversityAbility/))
+The Jupyter Notebook walks through the stages of the agent-based model `Team` using some network visualizations. Running the notebook will create visualizations in the folder `www`. These can also be viewed on the [GitHub page](https://heinduijf.github.io/DiversityAbility/). 
 
-### The agent-based model: `models/team.py`
-The central class `Team` is defined in `models/team.py`. A `Team` is an *agent-based model* consisting of sources and agents. The central method `accuracy` computes the accuracy of the team. 
+### Models: folder `models`
 
-### Determine the three types of teams: `models/generate_teams.py`
-The central methods for determining the three types of teams can be found in `models/generate_teams.py`: `generate_expert_team`, `generate_diverse_team`, and `generate_random_team`.
+- The agent-based model is implemented in the central class `Team`, which is located in `models/team.py`. A `Team` is an *agent-based model* consisting of sources and agents. The central methods `accuracy_opinion`, `accuracy_evidence` and `accuracy_bounded` compute the accuracy of the team for the opinion-based, evidence-based and boundedly rational evidence-based dynamics, respectively.
 
-### Data analysis: `DataAnalysis.ipynb`
-The Jupyter Notebook contains an analysis of results. The notebook contains some statistical analyses and some graphs illustrating the trade-off between expertise and diversity. Some of the scripts used for the data analysis can be found in the folder `data_analysis`.
+- The class `Team` relies on the classes `Sources` and `Agent` implementing the sources (and their reliability) ant the agents (and their heuristics), which are located `models/sources.py` and `models/agent.py`, respectively. 
+
+- The central methods for generating the three types of teams can be found in `models/generate_teams.py`: `generate_expert_team`, `generate_diverse_team`, and `generate_random_team`.
+
+### Data analysis: folder `data_analysis` and notebook `DataAnalysis.ipynb`
+The notebook contains statistical analyses and heatmaps illustrating the trade-off between expertise and diversity. It relies on the scripts for the Wilcoxon test, which are located in `data_analysis/statistics.py`. The scripts to compare expert teams to the best-performing individual are located in `data_analysis/expert_team_vs_individual.py`.
 
 ### Simulations: `simulation.py` and `grid_simulation.py`
-The class `Simulation` and method `Simulation.run()` is defined in `simulation.py`, the method produces a csv file (typically, in the folder `data`). The method `Simulation.run()` runs a simulation for a particular parameter setting and produces results that can give insight into whether diversity trumps ability for that parameter setting. 
+The class `Simulation` and method `Simulation.run()` is located in `simulation.py`, the method produces a csv file (by default, in the folder `data`). The method `Simulation.run()` runs a simulation for a particular parameter setting and produces results that can give insight into whether diversity trumps ability for that parameter setting. 
 
-The class `GridSimulation` and method `GridSimulation.run()` is defined in `grid_simulation.py`. The method runs simulations (by invoking the method `Simulation.run()`) for each parameter setting in a grid. 
+The class `GridSimulation` and method `GridSimulation.run()` is located in `grid_simulation.py`. The method runs simulations (by invoking the method `Simulation.run()`) for each parameter setting in a grid. 
 
 ### Figures: `figures.py`
-The figures in the paper can be reproduced by running `figures.py`. This will create the figures in the folder `figure` by calling scripts in `figures_scripts` and `data_analysis/heatmap`.
+The figures in the paper can be reproduced by running `figures.py`, but it requires the necessary simulation data in `data`. This will create the figures in the folder `figures/images` by running scripts in the folder `figures`, especially the `heatmap` script located in `figures/generate_heatmap.py`.
+
+### Robustness analysis: `Robustness.ipynb`
+The notebook contains various robustness checks for the main simulation results. 
+
+### Hong and Page's model: `models/landscape_model.py`
+The class `Landscape` is an implementation of the landscape model (by [Alice Huang](https://github.com/alicecwhuang/noisy-search/tree/master)). Running the script will produce a csv file `data/landscape.csv`, which contains simulation results supporting my claim that landscape models cannot address sparse decision problems.
+
+### Analytical approaches: `Analytical.ipynb`
+The notebook considers the question of whether the diversity-expertise tradeoff (as modelled by the evidential sources model) can be studied analytically, using approaches from the voting literature. To investigate this, it covers: (1) A lower bound in terms of number of sources and their mean reliability; (2) The Cantelli lower bound (in terms of $\mu$ and $\sigma$); and (3) Normal approximation. 
 
 ## 5. Computational limitations
 * This repository is not optimized for computational speed, but for findability, accessibility, interoperability, and reusability ([FAIR](https://www.uu.nl/en/research/research-data-management/guides/how-to-make-your-data-fair)).
 * Determining the accuracy of teams can be computationally demanding. The computational cost of computing the accuracy of a team goes up if the number of sources increases. Although this was still somewhat feasible for 17 sources (approx. 2 hours per parameter setting), it is no longer feasible for 21 sources.  
 
 ## 6. Licence and citation
-This repository accompanies an academic paper (in progress). In the meantime, please cite as follows:
+This repository accompanies an academic paper (in progress, preprint available on [PhilSci Archive](https://philsci-archive.pitt.edu/id/eprint/26428)). In the meantime, please cite as follows:
 - Duijf, H. (2025). Diversity and ability in an evidential sources framework. _GitHub_. https://github.com/HeinDuijf/DiversityAbility 
 
 Released under the [MIT licence](LICENCE.md).
