@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>NotebookWalkthrough</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>index</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7482,20 +7482,22 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Diversity-and-Expertise">Diversity and Expertise<a class="anchor-link" href="#Diversity-and-Expertise">¶</a></h1><p>This Jupyter Notebook demonstrates how the agent-based model (ABM) of group decision-making works by walking you through the stages of the opinion-based dynamics. The idea is that the group faces a binary choice problem and each individual has access to a number of imperfect sources to guide their individual decision-making. The model assumes that one of the two options is objectively or intersubjectively correct. The main components of the agent-based model are:</p>
+<h1 id="Diversity-and-Expertise">Diversity and Expertise<a class="anchor-link" href="#Diversity-and-Expertise">¶</a></h1><p>This Jupyter Notebook demonstrates how the agent-based model (ABM) of group decision-making works by walking you through the stages of the team’s collective decision-making. The idea is that the team faces a binary choice problem and each individual has access to a number of imperfect sources to guide their individual decision-making. The model assumes that one of the two options is objectively or intersubjectively correct. The main components of the agent-based model are:</p>
 <ol>
 <li><strong>Sources.</strong> Each ABM consists of a set of sources and their reliabilities. Each source has a certain reliability (typically, $\geq 0.5$), which represents the probability that it produces evidence that supports the correct alternative.</li>
-<li><strong>Agents.</strong> Each agent in the ABM is represented by their heuristic, which is modelled as the sources she has access to. The basic idea is that agents follow the majority of the evidences available to them.</li>
-<li><strong>Teams.</strong> A team is a set of agents. The team’s decision-making follows the majority rule. For example, in the opinion-based dynamics, teams pick the alternative that most team members think is best.</li>
+<li><strong>Agents.</strong> Each agent in the ABM is represented by their heuristic, which is modelled as the sources she has access to. Agents form their opinions by adopting the majority rule. The basic idea is that agents follow the majority of the evidences available to them.</li>
+<li><strong>Teams.</strong> A team is a set of agents. The teams communicate internally before forming a collective decision. We consider three deliberative mechanisms:<ol>
+<li>Opinion-based dynamics: agents communicate their opinion (not the underlying evidences) and the team’s collective decision follows the majority <em>opinion</em>.</li>
+<li>Evidence-based dynamics: agents communicate all their evidences and the team’s collective decision follows the majority <em>evidence</em>.</li>
+<li>Boundedly rational evidence-based dynamics: agents communicate all their evidences and the team’s collective decision follows the majority <em>evidence</em>—possibly with double counting.</li>
 </ol>
-<p>In particular, an instantiation of the agent-based model, called <code>Team</code>, consists of the following building blocks:</p>
+</li>
+</ol>
+<p>In particular, an given team, implemented by the class <code>Team</code>, consists of the following building blocks:</p>
 <ul>
-<li>A set of sources $S$,</li>
-<li>For each source $s \in S$, its reliability $p_s$</li>
-<li>A set of agents $N$,</li>
-<li>For each agent $i \in N$, a set of sources $S_i \subseteq S$ that she has access to (i.e., her heuristic).</li>
+<li>A set of sources and their (heterogeneous) reliabilities, implemented by the class <code>Sources</code>.</li>
+<li>A set of agents and their heuristics (i.e., sets of sources that they have access to, one for each agent), implemented by the class <code>Agent</code>.</li>
 </ul>
-<p>In future work, I plan to also include more complicated versions of group decision-making (other than majority rule) by including influence networks.</p>
 </div>
 </div>
 </div>
@@ -7506,7 +7508,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="0.-Initialization">0. Initialization<a class="anchor-link" href="#0.-Initialization">¶</a></h2><p>We start with loading some packages and scripts:</p>
+<h2 id="0.-Setup">0. Setup<a class="anchor-link" href="#0.-Setup">¶</a></h2><p>We start with loading required packages and creating the scripts necessary for the visualizations.</p>
 </div>
 </div>
 </div>
@@ -7518,7 +7520,176 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">run</span> utils/notebook.py
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span> <span class="k">as</span> <span class="nn">rd</span>
+
+<span class="kn">import</span> <span class="nn">utils.config</span> <span class="k">as</span> <span class="nn">cfg</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pyvis</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">from</span> <span class="nn">pyvis.network</span> <span class="kn">import</span> <span class="n">Network</span>
+
+<span class="kn">from</span> <span class="nn">models.sources</span> <span class="kn">import</span> <span class="n">Sources</span>
+<span class="kn">from</span> <span class="nn">models.agent</span> <span class="kn">import</span> <span class="n">Agent</span>
+<span class="kn">from</span> <span class="nn">models.team</span> <span class="kn">import</span> <span class="n">Team</span>
+<span class="kn">from</span> <span class="nn">models.generate_teams</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">generate_diverse_team</span><span class="p">,</span>
+    <span class="n">generate_expert_team</span><span class="p">,</span>
+    <span class="n">generate_random_team</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=e4e4b203">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [30]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">correct_color</span> <span class="o">=</span> <span class="s2">"forestgreen"</span>
+<span class="n">incorrect_color</span> <span class="o">=</span> <span class="s2">"firebrick"</span>
+<span class="n">agent_initial_color</span> <span class="o">=</span> <span class="s2">"darkorange"</span>
+<span class="n">source_initial_color</span> <span class="o">=</span> <span class="s2">"teal"</span>
+
+
+<span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span>
+    <span class="n">team</span><span class="p">:</span> <span class="n">Team</span><span class="p">,</span>
+    <span class="n">sorting</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"degree"</span><span class="p">,</span>
+    <span class="n">sizing</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"reliability"</span><span class="p">,</span>
+    <span class="n">coloring</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"initial"</span><span class="p">,</span>
+    <span class="n">edge_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Network</span><span class="p">:</span>
+    <span class="n">net</span> <span class="o">=</span> <span class="n">Network</span><span class="p">(</span>
+        <span class="n">height</span><span class="o">=</span><span class="s2">"200px"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="s2">"100%"</span><span class="p">,</span>
+        <span class="n">directed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">notebook</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">neighborhood_highlight</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">cdn_resources</span><span class="o">=</span><span class="s2">"in_line"</span><span class="p">,</span>
+        <span class="n">layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">sources_ordered</span> <span class="o">=</span> <span class="n">sort_sources</span><span class="p">(</span><span class="n">team</span><span class="p">,</span> <span class="n">sorting</span><span class="p">)</span>
+    <span class="n">sources_coloring</span> <span class="o">=</span> <span class="n">color_sources</span><span class="p">(</span><span class="n">team</span><span class="p">,</span> <span class="n">coloring</span><span class="p">)</span>
+    <span class="n">sources_sizing</span> <span class="o">=</span> <span class="n">size_sources</span><span class="p">(</span><span class="n">team</span><span class="p">,</span> <span class="n">sizing</span><span class="p">)</span>
+    <span class="n">agents_coloring</span> <span class="o">=</span> <span class="n">color_agents</span><span class="p">(</span><span class="n">team</span><span class="p">,</span> <span class="n">coloring</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sources_ordered</span><span class="p">:</span>
+        <span class="n">net</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"s</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Reliability </span><span class="si">{</span><span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">reliabilities</span><span class="p">[</span><span class="n">source</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">sources_coloring</span><span class="p">[</span><span class="n">source</span><span class="p">],</span>
+            <span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="n">sources_sizing</span><span class="p">[</span><span class="n">source</span><span class="p">],</span>
+        <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">agent_no</span><span class="p">,</span> <span class="n">agent</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">team</span><span class="o">.</span><span class="n">members</span><span class="p">):</span>
+        <span class="n">net</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span>
+            <span class="n">agent_no</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Agent </span><span class="si">{</span><span class="n">agent_no</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">agents_coloring</span><span class="p">[</span><span class="n">agent</span><span class="p">],</span>
+            <span class="n">level</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">net</span><span class="o">.</span><span class="n">set_edge_smooth</span><span class="p">(</span><span class="n">edge_type</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">agent_no</span><span class="p">,</span> <span class="n">agent</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">team</span><span class="o">.</span><span class="n">members</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">heuristic</span><span class="p">:</span>
+            <span class="n">net</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span>
+                <span class="n">source</span><span class="o">=</span><span class="sa">f</span><span class="s2">"s</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">agent_no</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">sources_coloring</span><span class="p">[</span><span class="n">source</span><span class="p">]</span>
+            <span class="p">)</span>
+
+    <span class="n">net</span><span class="o">.</span><span class="n">hrepulsion</span><span class="p">(</span><span class="n">node_distance</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="n">net</span><span class="o">.</span><span class="n">prep_notebook</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">net</span>
+
+
+<span class="k">def</span> <span class="nf">sort_sources</span><span class="p">(</span><span class="n">team</span><span class="p">:</span> <span class="n">Team</span><span class="p">,</span> <span class="n">sorting</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"degree"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="n">sources_tuples</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+    <span class="n">heuristics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">agent</span><span class="o">.</span><span class="n">heuristic</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">members</span><span class="p">])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">unique</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">heuristics</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">source_degrees_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique</span><span class="p">,</span> <span class="n">counts</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source_degrees_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">source_degrees_dict</span><span class="p">[</span><span class="n">source</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">sorting</span> <span class="o">==</span> <span class="s2">"degree"</span><span class="p">:</span>
+        <span class="n">sources_tuples</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span>
+                <span class="n">source</span><span class="p">,</span>
+                <span class="n">source_degrees_dict</span><span class="p">[</span><span class="n">source</span><span class="p">],</span>
+                <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">reliabilities</span><span class="p">[</span><span class="n">source</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">sources</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">sorting</span> <span class="o">==</span> <span class="s2">"reliability"</span><span class="p">:</span>
+        <span class="n">sources_tuples</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span>
+                <span class="n">source</span><span class="p">,</span>
+                <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">reliabilities</span><span class="p">[</span><span class="n">source</span><span class="p">],</span>
+                <span class="n">source_degrees_dict</span><span class="p">[</span><span class="n">source</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">sources</span>
+        <span class="p">]</span>
+    <span class="n">sources_tuples</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">sources_tuples</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">sources_ordered</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">sources_tuples</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sources_ordered</span>
+
+
+<span class="k">def</span> <span class="nf">color_sources</span><span class="p">(</span><span class="n">team</span><span class="p">:</span> <span class="n">Team</span><span class="p">,</span> <span class="n">coloring</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">sources_coloring</span> <span class="o">=</span> <span class="p">{</span><span class="n">source</span><span class="p">:</span> <span class="n">source_initial_color</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">sources</span><span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">coloring</span> <span class="o">==</span> <span class="s2">"sources"</span> <span class="ow">or</span> <span class="n">coloring</span> <span class="o">==</span> <span class="s2">"agents"</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">valences</span><span class="p">[</span><span class="n">source</span><span class="p">]</span> <span class="o">==</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vote_for_positive</span><span class="p">:</span>
+                <span class="n">sources_coloring</span><span class="p">[</span><span class="n">source</span><span class="p">]</span> <span class="o">=</span> <span class="n">correct_color</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sources_coloring</span><span class="p">[</span><span class="n">source</span><span class="p">]</span> <span class="o">=</span> <span class="n">incorrect_color</span>
+    <span class="k">return</span> <span class="n">sources_coloring</span>
+
+
+<span class="k">def</span> <span class="nf">size_sources</span><span class="p">(</span><span class="n">team</span><span class="p">:</span> <span class="n">Team</span><span class="p">,</span> <span class="n">sizing</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">source_sizing</span> <span class="o">=</span> <span class="p">{</span><span class="n">source</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">sources</span><span class="p">}</span>
+    <span class="n">heuristics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">agent</span><span class="o">.</span><span class="n">heuristic</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">members</span><span class="p">])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">unique</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">heuristics</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">source_degrees_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique</span><span class="p">,</span> <span class="n">counts</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">sizing</span> <span class="o">==</span> <span class="s2">"degree"</span><span class="p">:</span>
+        <span class="n">source_sizing</span> <span class="o">=</span> <span class="p">{</span><span class="n">source</span><span class="p">:</span> <span class="n">source_degrees_dict</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">sources</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="n">sizing</span> <span class="o">==</span> <span class="s2">"reliability"</span><span class="p">:</span>
+        <span class="n">source_sizing</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">source</span><span class="p">:</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">reliabilities</span><span class="p">[</span><span class="n">source</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">sources</span>
+        <span class="p">}</span>
+    <span class="n">minimum</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">source_sizing</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">maximum</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">source_sizing</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
+        <span class="n">source_sizing</span><span class="p">[</span><span class="n">source</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">+</span> <span class="mi">40</span> <span class="o">*</span> <span class="p">(</span><span class="n">source_sizing</span><span class="p">[</span><span class="n">source</span><span class="p">]</span> <span class="o">-</span> <span class="n">minimum</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="n">maximum</span> <span class="o">-</span> <span class="n">minimum</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">source_sizing</span>
+
+
+<span class="k">def</span> <span class="nf">color_agents</span><span class="p">(</span><span class="n">team</span><span class="p">:</span> <span class="n">Team</span><span class="p">,</span> <span class="n">coloring</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">agents_coloring</span> <span class="o">=</span> <span class="p">{</span><span class="n">agent</span><span class="p">:</span> <span class="n">agent_initial_color</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">members</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">members</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">coloring</span> <span class="o">==</span> <span class="s2">"agents"</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">opinion</span> <span class="o">==</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vote_for_positive</span><span class="p">:</span>
+                <span class="n">agents_coloring</span><span class="p">[</span><span class="n">agent</span><span class="p">]</span> <span class="o">=</span> <span class="n">correct_color</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">agents_coloring</span><span class="p">[</span><span class="n">agent</span><span class="p">]</span> <span class="o">=</span> <span class="n">incorrect_color</span>
+    <span class="k">return</span> <span class="n">agents_coloring</span>
 </pre></div>
 </div>
 </div>
@@ -7533,17 +7704,17 @@ a.anchor-link {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="1.-A-simple-example">1. A simple example<a class="anchor-link" href="#1.-A-simple-example">¶</a></h2><h3 id="1.0-Initial-stage">1.0 Initial stage<a class="anchor-link" href="#1.0-Initial-stage">¶</a></h3><p>Let us start with considering a random team of 9 agents. More explicitly, we set the parameters as follows:</p>
 <ul>
-<li>A set of 21 sources $S=\{s_1, \ldots, s_{21}\}$,</li>
-<li>A set of 9 agents $N=\{0, \ldots, 8\}$,</li>
-<li>Each agent has a heuristic of size 5, i.e., $|S_i|=5$ for each agent $i$.</li>
+<li>A set of 21 sources given by $\{s_1, \ldots, s_{21}\}$,</li>
+<li>A team consisting of 9 agents given by $\{0, \ldots, 8\}$,</li>
+<li>Each agent has a heuristic of size 5, i.e., each agent has access to exactly five sources.</li>
 </ul>
-<p>The random team is depicted in the picture below. Let me explain the picture:</p>
+<p>A random team is depicted in the picture below. Let me explain the picture:</p>
 <ul>
 <li>Nodes:<ul>
 <li>The initial color of the nodes represents whether they are <font color="teal">sources</font> or <font color="darkorange">agents</font>.</li>
 <li><font color="teal">Sources</font>:<ul>
 <li>The size of the sources is proportional to their reliability, so that bigger sources are more reliable.</li>
-<li>The sources are ordered from left to right from most to least accessed. Equally accessed sources are ordered from left to right from most to least reliable.</li>
+<li>The sources are ordered from left to right from most to least accessed. (Equally accessed sources are ordered from left to right from most to least reliable.)</li>
 </ul>
 </li>
 <li><font color="darkorange">Agents</font>:<ul>
@@ -7553,8 +7724,8 @@ a.anchor-link {
 </ul>
 </li>
 <li>Edges:<ul>
-<li>The <em>edges</em> represent the agents' <strong>heuristics</strong>: which is the set of targets of the outgoing edges. Accordingly, every agent has out-degree 5.</li>
-<li>Hence, sources with higher in-degrees have more influence on the team decision-making.</li>
+<li>The <em>edges</em> represent the agents' <strong>heuristics</strong>: which is the set of targets of the incoming edges. Accordingly, every agent has in-degree 5.</li>
+<li>Hence, sources with higher out-degrees have more influence on the team decision-making.</li>
 <li>The color of an edge represents the color of the associated source.</li>
 </ul>
 </li>
@@ -7568,12 +7739,12 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">sources</span> <span class="o">=</span> <span class="n">Sources</span><span class="p">(</span>
     <span class="n">n_sources</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span> 
-    <span class="n">reliability_distribution</span><span class="o">=</span><span class="p">(</span><span class="s2">"equi"</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)),</span>
+    <span class="n">reliability_distribution</span><span class="o">=</span><span class="p">(</span><span class="s2">"equi"</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
 <span class="p">)</span>
 <span class="n">team</span> <span class="o">=</span> <span class="n">generate_random_team</span><span class="p">(</span>
     <span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span>
@@ -7591,7 +7762,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [70]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"initial"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/team_initial.html"</span><span class="p">)</span>
@@ -7612,7 +7783,7 @@ a.anchor-link {
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[70]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/team_initial.html" width="100%"></iframe>
 </div>
@@ -7628,7 +7799,6 @@ a.anchor-link {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="1.1-Source-valences">1.1 Source valences<a class="anchor-link" href="#1.1-Source-valences">¶</a></h3><p>In the first stage, the valence of each source $s\in S$ is probabilistically determined by its reliability $p_s$ (i.e., a Bernouilli trial). The color of the <em>sources</em> represents whether their piece of <strong>evidence</strong> has the <font color="forestgreen"><strong>correct</strong></font> or <font color="firebrick"><strong>incorrect</strong></font> valence, i.e., supports the objectively or intersubjectively <font color="forestgreen"><strong>correct</strong></font> or <font color="firebrick"><strong>incorrect</strong></font> option.</p>
 <p>In the second stage, each agent $i$ forms their opinion based on the evidences from their sources $S_i$. The color of the <em>agents</em> represents whether their <strong>opinion</strong> supports the <font color="forestgreen"><strong>correct</strong></font> or <font color="firebrick"><strong>incorrect</strong></font> alternative.</p>
-<p>In the third stage, the team forms its collective decision by following the majority rule.</p>
 <p>Let's see how this might go in this random team. Did any source have the wrong valence? Can you figure out why? Can you predict some of the agent's opinions?</p>
 </div>
 </div>
@@ -7638,10 +7808,12 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [71]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="o">=</span><span class="n">team</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"sources"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/team_sources.html"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">sources</span><span class="o">.</span><span class="n">update_valences</span><span class="p">()</span>
+<span class="n">team</span><span class="o">.</span><span class="n">update_opinions</span><span class="p">()</span>
+<span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="o">=</span><span class="n">team</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"sources"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/team_sources.html"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7659,7 +7831,7 @@ a.anchor-link {
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[71]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/team_sources.html" width="100%"></iframe>
 </div>
@@ -7683,7 +7855,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [72]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="o">=</span><span class="n">team</span><span class="p">,</span> <span class="n">coloring</span><span class="o">=</span><span class="s2">"agents"</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/team_agents.html"</span><span class="p">)</span>
@@ -7704,7 +7876,7 @@ a.anchor-link {
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[5]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[72]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/team_agents.html" width="100%"></iframe>
 </div>
@@ -7718,7 +7890,42 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="1.3-The-group-decision">1.3 The group decision<a class="anchor-link" href="#1.3-The-group-decision">¶</a></h3><p>The outcome is probably no surprise to you at this point, but let's determine the team's collective decision:</p>
+<h3 id="1.3-The-team%E2%80%99s-collective-decision">1.3 The team’s collective decision<a class="anchor-link" href="#1.3-The-team%E2%80%99s-collective-decision">¶</a></h3><p>The outcomes may be no surprise to you at this point, but let's determine the team's collective decision for each of the deliberative mechanisms.</p>
+<p>Before going over the different deliberative mechanisms we create a script that will nicely print the collective decisions:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=62f382e1-0154-4742-b850-96f6c7e30c08">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [100]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">collective_decision</span><span class="p">(</span><span class="n">list_of_items</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">item_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">n_correct</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_of_items</span> <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vote_for_positive</span><span class="p">])</span>
+    <span class="n">n_incorrect</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_of_items</span> <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vote_for_negative</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Correct </span><span class="si">{</span><span class="n">item_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">n_correct</span><span class="si">}</span><span class="s2"> | Incorrect </span><span class="si">{</span><span class="n">item_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">n_incorrect</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_correct</span> <span class="o">&gt;</span> <span class="n">n_incorrect</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"=&gt; Hence, the team's decision is correct!"</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">n_correct</span> <span class="o">&lt;</span> <span class="n">n_incorrect</span><span class="p">:</span> 
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"=&gt; Hence, the team's decision is incorrect!"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"=&gt; Hence, the evidences lead to a tie!"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9f309b3a-b374-4383-8ec6-aeeb9590a8d4">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="A.-Opinion-based-dynamics">A. Opinion-based dynamics<a class="anchor-link" href="#A.-Opinion-based-dynamics">¶</a></h4>
 </div>
 </div>
 </div>
@@ -7727,14 +7934,11 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [101]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">correct_opinions</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
-    <span class="p">[</span><span class="mi">1</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">members</span> <span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">opinion</span> <span class="o">==</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vote_for_positive</span><span class="p">]</span>
-<span class="p">)</span>
-<span class="n">incorrect_opinions</span> <span class="o">=</span> <span class="n">team</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">correct_opinions</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Correct: </span><span class="si">{</span><span class="n">correct_opinions</span><span class="si">}</span><span class="s2"> | Incorrect: </span><span class="si">{</span><span class="n">incorrect_opinions</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">opinions_valences</span> <span class="o">=</span> <span class="p">[</span><span class="n">agent</span><span class="o">.</span><span class="n">opinion</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">members</span><span class="p">]</span>
+<span class="n">collective_decision</span><span class="p">(</span><span class="n">opinions_valences</span><span class="p">,</span> <span class="s2">"opinions"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7747,7 +7951,95 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Correct: 7 | Incorrect: 2
+<pre>Correct opinions: 3 | Incorrect opinions: 6
+=&gt; Hence, the team's decision is incorrect!
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3817381d-02bb-40e6-9383-c5239a626967">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="B.-Evidence-based-dynamics">B. Evidence-based dynamics<a class="anchor-link" href="#B.-Evidence-based-dynamics">¶</a></h4>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d8eebeca-42b5-4f12-845d-8f60f68a606e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [102]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">evidences_accessed</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">source</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">members</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">heuristic</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">evidences_valences</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">sources</span><span class="o">.</span><span class="n">valences</span><span class="p">[</span><span class="n">source</span><span class="p">]</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">evidences_accessed</span>
+<span class="p">]</span>
+<span class="n">collective_decision</span><span class="p">(</span><span class="n">evidences_valences</span><span class="p">,</span> <span class="s2">"evidences"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Correct evidences: 8 | Incorrect evidences: 7
+=&gt; Hence, the team's decision is correct!
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7c19adf8-8694-4ddd-81ad-f89e8d6f11a1">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="C.-Boundedly-rational-evidence-based-dynamics">C. Boundedly rational evidence-based dynamics<a class="anchor-link" href="#C.-Boundedly-rational-evidence-based-dynamics">¶</a></h4>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=95edc8cb-f011-4596-95fa-7f004c86fb98">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [103]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">evidences_valences</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">sources</span><span class="o">.</span><span class="n">valences</span><span class="p">[</span><span class="n">source</span><span class="p">]</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">members</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">agent</span><span class="o">.</span><span class="n">heuristic</span>
+<span class="p">]</span>
+<span class="n">collective_decision</span><span class="p">(</span><span class="n">evidences_valences</span><span class="p">,</span> <span class="s2">"evidences"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Correct evidences: 20 | Incorrect evidences: 25
+=&gt; Hence, the team's decision is incorrect!
 </pre>
 </div>
 </div>
@@ -7760,7 +8052,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2-Different-teams">2 Different teams<a class="anchor-link" href="#2-Different-teams">¶</a></h2><p>In this repository we consider three types of teams:</p>
+<h2 id="2-Different-teams">2 Different teams<a class="anchor-link" href="#2-Different-teams">¶</a></h2><p>In this repository we implemented three types of teams:</p>
 <ol>
 <li>Expert teams consisting of the best-performing agents;</li>
 <li>Diverse teams consisting of a (cognitively) diverse set of agents;</li>
@@ -7795,7 +8087,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [104]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">generate_expert_team</span><span class="p">(</span><span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">heuristic_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">team_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
@@ -7817,7 +8109,7 @@ a.anchor-link {
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[7]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[104]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/expert_team.html" width="100%"></iframe>
 </div>
@@ -7831,7 +8123,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="2.2-The-diverse-team">2.2 The diverse team<a class="anchor-link" href="#2.2-The-diverse-team">¶</a></h3><p>Below you can see what the most diverse team might look like. Notice that the most diverse team has access to all (or virtually all) sources — regardless of their reliability.</p>
+<h3 id="2.2-A-diverse-team">2.2 A diverse team<a class="anchor-link" href="#2.2-A-diverse-team">¶</a></h3><p>Below you can see what a maximally diverse team might look like. Notice that a maximally diverse team has access to all (or virtually all) sources — regardless of their reliability.</p>
 </div>
 </div>
 </div>
@@ -7840,10 +8132,10 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [105]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">generate_diverse_team</span><span class="p">(</span><span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">heuristic_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">team_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">generate_diverse_team</span><span class="p">(</span><span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">heuristic_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">team_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
 <span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/diverse_team.html"</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -7862,7 +8154,7 @@ a.anchor-link {
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[105]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/diverse_team.html" width="100%"></iframe>
 </div>
@@ -7885,10 +8177,10 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [69]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">generate_random_team</span><span class="p">(</span><span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">heuristic_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">team_size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">team</span> <span class="o">=</span> <span class="n">generate_random_team</span><span class="p">(</span><span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">heuristic_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">team_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
 <span class="n">visualize</span><span class="p">(</span><span class="n">team</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s2">"www/random_team.html"</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -7907,7 +8199,7 @@ a.anchor-link {
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[9]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[69]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <iframe allowfullscreen="" frameborder="0" height="200px" src="www/random_team.html" width="100%"></iframe>
 </div>
