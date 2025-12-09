@@ -1,18 +1,17 @@
 # Diversity and Ability
 
+<!-- [![DOI](https://zenodo.org/badge/713798910.svg)](https://zenodo.org/badge/latestdoi/713798910)    -->
+
+[![DOI](https://zenodo.org/badge/DOI/713798910.svg)](https://doi.org/10.5281/zenodo.713798910)   
+
+<!-- [![DOI](https://zenodo.org/badge/DOI/713798910.svg)](https://doi.org/10.5281/zenodo.17832447) -->
+
 This repository is associated with a working paper on the 
-diversity-expertise trade-off in collective problem-solving. The background 
-is [Hong and Page's (2004)](https://doi.org/10.1073/pnas.0403723101) infamous 
-diversity trumps ability (DTA) results: 
+diversity-expertise trade-off in collective problem-solving. Here's the abstract: 
 
-> We find that when selecting a problem-solving 
-team from a diverse population of intelligent agents, a team of randomly selected 
-agents outperforms a team comprised of the best-performing agents.
+> Democratic theorists and social epistemologists often celebrate the epistemic benefits of diversity. One of the cornerstones is the ‘diversity trumps ability’ result by [Hong and Page (2004)](https://doi.org/10.1073/pnas.0403723101). Ironically, the interplay between diversity and ability is rarely studied in radically different frameworks. Although diversity has been studied in prediction and search problems, the diversity-expertise trade-off has not been studied systematically for small, deliberative groups facing binary classification problems. To fill this gap, I will introduce a new evidential sources framework and study whether, when, and (if so) why diversity trumps expertise in binary classification problems. The newly gained insights are used to revisit the epistemic credentials of deliberative democracy.
 
-This repository 
-investigates the collective problem-solving capacities of teams in a new formal 
-framework: a (probabilistic) evidential sources model. We consider three types of 
-teams:
+This repository investigates the collective problem-solving capacities of teams in a new evidential sources framework. The simulation study focuses on expert and diverse teams, but the repository also coverse random teams:
 1. Expert teams consisting of the best-performing agents;
 2. Diverse teams consisting of a (cognitively) diverse set of agents;
 3. Random teams consisting of a randomly selected agents. 
@@ -64,7 +63,7 @@ The Jupyter Notebook walks through the stages of the agent-based model `Team` us
 - The central methods for generating the three types of teams can be found in `models/generate_teams.py`: `generate_expert_team`, `generate_diverse_team`, and `generate_random_team`.
 
 ### Data analysis: folder `data_analysis` and notebook `DataAnalysis.ipynb`
-The notebook contains statistical analyses and heatmaps illustrating the trade-off between expertise and diversity. It relies on the scripts for the Wilcoxon test, which are located in `data_analysis/statistics.py`. The scripts to compare expert teams to the best-performing individual are located in `data_analysis/expert_team_vs_individual.py`.
+The notebook contains statistical results and heatmaps illustrating the trade-off between expertise and diversity. It relies on the scripts for the Wilcoxon test, which are located in `data_analysis/statistics.py`. The scripts to compare expert teams to the best-performing individual are located in `data_analysis/expert_team_vs_individual.py`.
 
 ### Simulations: `simulation.py` and `grid_simulation.py`
 The class `Simulation` and method `Simulation.run()` is located in `simulation.py`, the method produces a csv file (by default, in the folder `data`). The method `Simulation.run()` runs a simulation for a particular parameter setting and produces results that can give insight into whether diversity trumps ability for that parameter setting. 
@@ -89,6 +88,9 @@ The notebook considers the question of whether the diversity-expertise tradeoff 
 
 ## 6. Licence and citation
 This repository accompanies an academic paper (in progress, preprint available on [PhilSci Archive](https://philsci-archive.pitt.edu/id/eprint/26428)). In the meantime, please cite as follows:
-- Duijf, H. (2025). Diversity and ability in an evidential sources framework. _GitHub_. https://github.com/HeinDuijf/DiversityAbility 
+- Duijf, H. (2025). Diversity and ability in an evidential sources framework. _Zenodo_. 
+
+[![DOI](https://zenodo.org/badge/DOI/713798910.svg)](https://doi.org/10.5281/zenodo.713798910)
+ 
 
 Released under the [MIT licence](LICENCE.md).
