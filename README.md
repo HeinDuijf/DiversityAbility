@@ -1,10 +1,6 @@
 # Diversity and Ability
 
-<!-- [![DOI](https://zenodo.org/badge/713798910.svg)](https://zenodo.org/badge/latestdoi/713798910)    -->
-
-[![DOI](https://zenodo.org/badge/DOI/713798910.svg)](https://doi.org/10.5281/zenodo.713798910)   
-
-<!-- [![DOI](https://zenodo.org/badge/DOI/713798910.svg)](https://doi.org/10.5281/zenodo.17832447) -->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17899031.svg)](https://doi.org/10.5281/zenodo.17899031)   
 
 This repository is associated with a working paper on the 
 diversity-expertise trade-off in collective problem-solving. Here's the abstract: 
@@ -88,9 +84,9 @@ The notebook considers the question of whether the diversity-expertise tradeoff 
 
 ## 6. Licence and citation
 This repository accompanies an academic paper (in progress, preprint available on [PhilSci Archive](https://philsci-archive.pitt.edu/id/eprint/26428)). In the meantime, please cite as follows:
-- Duijf, H. (2025). Diversity and ability in an evidential sources framework. _Zenodo_. 
+- Duijf, H. (2025). Diversity and ability in an evidential sources framework. _Zenodo_. https://doi.org/10.5281/zenodo.17899031
 
-[![DOI](https://zenodo.org/badge/DOI/713798910.svg)](https://doi.org/10.5281/zenodo.713798910)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17899031.svg)](https://doi.org/10.5281/zenodo.17899031)
  
 
 Released under the [MIT licence](LICENCE.md).
