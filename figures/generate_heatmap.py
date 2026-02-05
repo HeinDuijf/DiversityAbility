@@ -34,9 +34,17 @@ def heatmap(
     pivot_df.sort_index(inplace=True, ascending=False)
 
     sns.set_style("white")
-    font_style = {"family": "Times New Roman", "size": 12}
-    plt.rc("font", **font_style)
-    plt.figure(figsize=(5, 3))
+    plt.rcParams.update(
+        {
+            "text.usetex": True,
+            "text.latex.preamble": r"\usepackage{mathptmx}",
+            "font.family": "serif",
+            "font.size": 9.75,
+        }
+    )
+    # font_style = {"family": "Times New Roman", "size": 12}
+    # plt.rc("font", **font_style)
+    plt.figure(figsize=(4, 2.5))
 
     heatmap_params = {
         # "annot": True,
@@ -99,7 +107,7 @@ def heatmap(
         **heatmap_params,
     )
 
-    fig.set_xlabel("Sources (#)")
+    fig.set_xlabel(r"Sources (\#)")
     fig.set_ylabel("Reliability (mean)")
     plt.yticks(rotation=0)
 

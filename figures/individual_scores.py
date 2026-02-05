@@ -22,11 +22,19 @@ def boxplot_individual_scores(n_sources: int = 13, heuristic_size: int = 5, show
         scores_df = pd.concat([scores_df, data_df], axis=1)
 
     sns.set_style("whitegrid")
-    font_style = {"family": "Times New Roman", "size": 12}
-    plt.rc("font", **font_style)
-    plt.figure(figsize=(6, 3))
+    # font_style = {"family": "Times New Roman", "size": 12}
+    # plt.rc("font", **font_style)
+    plt.rcParams.update(
+        {
+            "text.usetex": True,
+            "text.latex.preamble": r"\usepackage{mathptmx}",
+            "font.family": "serif",
+            "font.size": 9.75,
+        }
+    )
+    plt.figure(figsize=(4, 3))
 
-    fig = sns.boxplot(data=scores_df, palette="Grays")
+    fig = sns.boxplot(data=scores_df, color="lightgray")  # palette="Grays"
     fig.set_yticks(0.4 + 0.1 * np.arange(7, dtype=int))
     # fig.set_title("Individual scores")
     fig.set_xlabel("Mean source reliability")
