@@ -2,8 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17899031.svg)](https://doi.org/10.5281/zenodo.17899031)   
 
-This repository is associated with a working paper on the 
-diversity-expertise trade-off in collective problem-solving. Here's the abstract: 
+This repository is associated with the paper ‘Diversity and expertise in binary classification problems’, which is accepted at [_Philosophy of Science_](https://www.cambridge.org/core/journals/philosophy-of-science) ([PhilSci Archive](https://philsci-archive.pitt.edu/id/eprint/26428)). Here's the abstract: 
 
 > Democratic theorists and social epistemologists often celebrate the epistemic benefits of diversity. One of the cornerstones is the ‘diversity trumps ability’ result by [Hong and Page (2004)](https://doi.org/10.1073/pnas.0403723101). Ironically, the interplay between diversity and ability is rarely studied in radically different frameworks. Although diversity has been studied in prediction and search problems, the diversity-expertise trade-off has not been studied systematically for small, deliberative groups facing binary classification problems. To fill this gap, I will introduce a new evidential sources framework and study whether, when, and (if so) why diversity trumps expertise in binary classification problems. The newly gained insights are used to revisit the epistemic credentials of deliberative democracy.
 
@@ -83,8 +82,8 @@ The notebook considers the question of whether the diversity-expertise tradeoff 
 * Determining the accuracy of teams can be computationally demanding. The computational cost of computing the accuracy of a team goes up if the number of sources increases. Although this was still somewhat feasible for 17 sources (approx. 2 hours per parameter setting), it is no longer feasible for 21 sources.  
 
 ## 6. Licence and citation
-This repository accompanies an academic paper (in progress, preprint available on [PhilSci Archive](https://philsci-archive.pitt.edu/id/eprint/26428)). In the meantime, please cite as follows:
-- Duijf, H. (2025). Diversity and ability in an evidential sources framework. _Zenodo_. https://doi.org/10.5281/zenodo.17899031
+This repository accompanies an academic paper. Please cite this repository as follows:
+- Duijf, H. (2025). _Diversity and ability in an evidential sources framework_. Zenodo. https://doi.org/10.5281/zenodo.17899031
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17899031.svg)](https://doi.org/10.5281/zenodo.17899031)
  
